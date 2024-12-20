@@ -1,0 +1,298 @@
+---
+title: "Assignment3-Vemula-CarPricingPrediction"
+author: "Divya Vemula"
+date: "2024-11-20"
+output: html_document
+---
+
+******
+
+# Car Pricing Prediction
+
+## Dataset Summary
+This dataset contains information about **50,001 car listings** for sale, and the goal is to **predict the price of the cars** based on various attributes such as the vehicle type, fuel type, model, brand, year of registration, and more. 
+
+- The dataset consists of **19 columns**, with features provided for each car, and the target variable being the **price**.
+
+- The **columns** capture various car characteristics like the seller type, gearbox, power, mileage, and more, which are used to train predictive models for estimating the price.
+
+### Dataset Source
+
+The dataset was sourced from
+
+[Kaggle](https://www.kaggle.com/datasets/sanskrutipanda/car-pricing-prediction/data).
+
+### Kaggle Screenshot 
+
+![No R notebook available](No-R-Code-CarPricingPrediction.png)  
+
+### Describing the outcome and the predictors in the Dataset
+
+**Predictors:**
+
+  - **name**: The name of the car model (e.g., "Volvo_XC90_2.4D_Summum").
+  - **dateCrawled**: The date when the listing was crawled from the website (e.g., "30/03/2016 13:51").
+  - **seller**: The type of seller, either "private" or "dealer".
+  - **offerType**: Type of the offer (e.g., "offer" indicates it's a listing for sale).
+  - **abtest**: Randomized A/B testing groups (e.g., "control" or "test").
+  - **vehicleType**: The type of vehicle, such as "SUV", "limousine", or "small car".
+  - **yearOfRegistration**: The year the car was registered.
+  - **gearbox**: The type of gearbox (e.g., "manual" or "automatic").
+  - **powerPS**: The power of the car's engine in horsepower (PS).
+  - **model**: The specific model of the car (e.g., "3er", "xc_reihe").
+  - **kilometer**: The total kilometers the car has been driven.
+  - **monthOfRegistration**: The month in which the car was registered.
+  - **fuelType**: Type of fuel used by the car (e.g., "diesel", "petrol").
+  - **brand**: The brand of the car (e.g., "BMW", "Volkswagen").
+  - **notRepairedDamage**: Whether the car has been repaired after previous damage ("yes" or "no").
+  - **postalCode**: The postal code where the car is located.
+  - **dateCreated**: The date when the listing was created (e.g., "30/03/2016 0:00").
+  - **lastSeen**: The date when the listing was last seen (e.g., "7/4/2016 4:44").
+
+
+**Outcome Variable:**
+
+  - **price**: price of the car in EUR (target variable).
+
+
+### Objective
+
+- The goal of this dataset is to predict the **price** of a car based on the various features. 
+
+- This is a regression problem where the continuous dependent variable is the 'price' column, and the independent variables include the other attributes.
+
+### Data Preprocessing
+
+- Converting categorical variables (e.g., 'gearbox', 'fuelType', 'brand') to numeric values using encoding techniques.
+
+- Handling missing values
+
+- Splitting the data into training and testing sets for model evaluation.
+
+******
+
+## Load Required Dependencies  
+
+```{r setup, warning=FALSE, message=FALSE}
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+if (!require('tidyverse')) install.packages('tidyverse'); library('tidyverse')
+if (!require('h2o')) install.packages('gh'); library('gh')
+if (!require('kableExtra')) install.packages('kableExtra'); library('kableExtra')
+if (!require('DALEXtra')) install.packages('DALEXtra'); library('DALEXtra')
+if (!require('skimr')) install.packages('skimr'); library('skimr')
+if (!require('recipes')) install.packages('recipes'); library('recipes')
+```
+
+******
+
+## Read the postprocessed data  
+``` {r reading csv}
+carpricing_df = read_csv("Assignment3-Vemula-CarPricingPrediction.csv", show_col_types = FALSE)
+```
+
+
+### Predictors Data
+
+``` {r Predictors}
+train_x_tbl <- carpricing_df |> select(-price)
+kable(head(train_x_tbl, 10), format = "html", align = "l", caption = "Top 10 Rows of Training Predictor Variables") %>% 
+  kable_styling(full_width = TRUE, bootstrap_options = c("striped", "hover", "condensed", "responsive", "bordered"), position = "center", font_size = 14) %>%
+  column_spec(1, bold = TRUE, background = "#D3D3D3") %>% 
+  row_spec(0, bold = TRUE, color = "white", background = "#4CAF50") %>% 
+  
+  footnote(general = "Top 10 rows", general_title = "Note: ", footnote_as_chunk = TRUE)
+
+```
+
+### Outcome Varible Data
+
+```{r Outcome variable}
+train_y_tbl <- carpricing_df |> select(price)
+
+kable(head(train_y_tbl, 10), format = "html", align = "l", caption = "Top 10 Rows of Outcome Variable") %>% 
+  kable_styling(full_width = TRUE, bootstrap_options = c("striped", "hover", "condensed", "responsive", "bordered", "highlight"), position = "center", font_size = 14) %>% 
+  add_header_above(c("Price Data" = 1)) %>% 
+  row_spec(0, bold = TRUE, color = "white", background = "#2C3E50") %>% 
+  column_spec(1, color = "white", background = "#E74C3C") %>% 
+  footnote(general = "This table displays the top 10 rows of the training target variable after preprocessing.", general_title = "Note: ", footnote_as_chunk = TRUE)
+
+```
+
+
+## Loading the trained/saved model
+
+**Initialize the h2o Instance**
+
+```{r initializing h2o, warning=FALSE}
+h2o.init(nthreads = -1)
+```
+
+
+**Summary Of the model**
+
+```{r load h2o model}
+h2o_model <- h2o.loadModel("Assignment3-Vemula-CarPricingPrediction.h2o")
+summary(h2o_model)
+```
+
+## Predictive performance of the model
+
+**performance metrics**
+```{r model metrics}
+
+Splits <- h2o.splitFrame(as.h2o(carpricing_df), ratios = 0.8, seed = 223)
+test_split <- Splits[[2]]
+ 
+performance <- h2o.performance(h2o_model, newdata = test_split)
+print(performance)
+
+mse <- h2o.mse(performance)  
+rmse <- h2o.rmse(performance) 
+mae <- h2o.mae(performance) 
+
+cat("MSE: ", mse, "\n")
+cat("RMSE: ", rmse, "\n")
+cat("MAE: ", mae, "\n")
+
+```
+
+
+### Plot: performance of the model
+```{r performance of the model}
+plot(h2o_model)
+```
+**Plot Explanation**:
+- The "Scoring History" plot indicates that the model performs exceptionally well, with both training and validation RMSE values remaining low and stable as the number of trees increases. 
+- This stability and low error rate suggest that the model is robust and reliable for predicting the target variable (likely car prices in this context).
+
+
+## Explain the model 
+
+**Explainer**
+
+``` {r Explainer, results = 'hide'}
+h2o_exp = explain_h2o(
+  model = h2o_model,
+  data = train_x_tbl,
+  y = train_y_tbl$price,
+  label = "H2O",
+  type = "regression"
+)
+```
+
+**New observation**
+
+```{r new observation}
+
+new_observation <- data.frame(
+  dateCrawled = c("30/03/2016 13:51", "7/3/2016 9:54"),
+  name = c("Zu_verkaufen", "Volvo_XC90_2.4D_Summum"),
+  seller = c("private", "private"),
+  offerType = c("offer", "offer"),
+  price = c(4450, 13299),
+  abtest = c("test", "control"),
+  vehicleType = c("limousine", "suv"),
+  yearOfRegistration = c(2003, 2005),
+  gearbox = c("manual", "manual"),
+  powerPS = c(150, 163),
+  model = c("3er", "xc_reihe"),
+  kilometer = c(150000, 150000),
+  monthOfRegistration = c(3, 6),
+  fuelType = c("diesel", "diesel"),
+  brand = c("bmw", "volvo"),
+  notRepairedDamage = c(NA, "no"),
+  dateCreated = c("30/03/2016 0:00", "7/3/2016 0:00"),
+  postalCode = c(20257, 88045),
+  lastSeen = c("7/4/2016 4:44", "26/03/2016 13:17")
+)
+
+new_observation_tbl_skim = partition(skim(new_observation))
+names(new_observation_tbl_skim)
+
+string_2_factor_names_new_observation <- new_observation_tbl_skim$character$skim_variable
+rec_obj_new_observation <- recipe(~ ., data = new_observation) |>
+  step_string2factor(all_of(string_2_factor_names_new_observation)) |>
+  prep()
+new_observation_processed_tbl <- bake(rec_obj_new_observation, new_observation)
+price_prediction = new_observation_processed_tbl
+
+```
+
+
+## XAI-Method-1 - SHAP
+``` {r SHAP plot, results = 'hide'}
+h2o_exp_shap <- predict_parts(
+explainer = h2o_exp, new_observation = price_prediction, type = "shap", B = 3)
+plot(h2o_exp_shap) + ggtitle("SHAP explanation")
+```
+###Explanation - XAI-Method-1 SHAP
+
+This plot shows how each feature contributes to the predicted price of the car. Positive contributions (green bars) indicate features that increase the predicted price, while negative contributions (red bars) would indicate features that decrease it. The model uses these features to make accurate predictions, and SHAP helps in interpreting how each feature impacts the final prediction.
+
+-**Positive Contributions**:
+
+Features like the month of registration, year of registration, vehicle type, power, model, and gearbox have minor positive contributions, slightly increasing the predicted price.
+
+- **Negative Contributions**:
+
+Features like name and postal code have slight negative impacts, slightly reducing the predicted price.
+
+- **Neutral Effects**:
+
+Some features, like not repaired damage, have a neutral effect on the prediction.
+
+
+-**Positive Contributions**:
+
+Features like the month of registration, year of registration, vehicle type, power, model, and gearbox have minor positive contributions, slightly increasing the predicted price.
+
+- **Negative Contributions**:
+
+Features like name and postal code have slight negative impacts, slightly reducing the predicted price.
+
+- **Neutral Effects**:
+
+Some features, like not repaired damage, have a neutral effect on the prediction.
+
+## XAI-Method-2 Ceteris-paribus Profiles  
+Ceteris paribus profiles provide insights into how individual observations respond to changes in specific features, allowing for a more detailed understanding of the model's behavior at the level of individual data points.
+
+``` {r Ceteris-paribus Profiles, results = 'hide', warning=FALSE}
+h2o_exp_cp <- predict_profile(
+  
+explainer = h2o_exp, new_observation = price_prediction)
+plot(h2o_exp_cp, variables = c("powerPS")) + ggtitle("Ceteris-paribus profile")
+```
+###Explanation - XAI-Method-2 Ceteris-paribus Profiles 
+
+- **Positive Contribution**: The variable on the x-axis positively influences the prediction up to a certain point.
+
+- **Diminishing Returns**: Beyond a specific value, the impact of the variable stabilizes, suggesting diminishing returns on the prediction value.
+
+- **Model Sensitivity**: This profile helps us understand the model's sensitivity to changes in the variable while keeping all other variables constant.
+
+- By interpreting the Ceteris-paribus profile, we gain valuable insights into how individual variables affect the model's predictions
+
+## XAI - Method-3 Break-down Plot
+```{r results = 'hide', warning=FALSE}
+h2o_exp_bd <- predict_parts(
+explainer = h2o_exp, new_observation = price_prediction,
+type = "break_down")
+plot(h2o_exp_bd) + ggtitle("Break-down plot for the new application")
+
+```
+### Expalantion XAI - Method-3 Break-down Plot:
+
+- **Positive Contributions**: Features like month of registration, year of registration, vehicle type, model, and gearbox have minor positive contributions, slightly increasing the predicted price.
+
+- **Negative Contributions**: Features like name and postal code have slight negative impacts, slightly reducing the predicted price.
+
+- **Neutral Effects**: Some features, like not repaired damage and other minor factors, have a neutral effect on the prediction.
+
+By understanding these contributions, we can see how each feature influences the model's prediction.
+
+#Finnaly
+```{r}
+h2o.shutdown(prompt = F)
+```
+

@@ -1,0 +1,428 @@
+---
+title: "Assignment-2: Key Trends in Azure Repositories and Topics"
+author: "Divya Vemula"
+date: "2024-11-03"
+output: html_document
+---
+
+# Introduction
+
+This report provides a comprehensive analysis of the **Azure** topic on GitHub, including repository characteristics, owner details, and trends in repository creation. 
+
+**Topic Description**
+
+- **Topic**: Azure 
+
+- **Description**: A cloud computing platform and service created by Microsoft,
+  offering various services including computing, analytics, storage, and
+  networking. 
+
+- **Link**: [Azure Topic on GitHub](https://github.com/topics/azure) 
+
+- **Source**: GitHub 
+
+- **Variables Included**: Personal access token for GitHub API
+
+- **Total Repositories For Topic Azure is**: 16742 
+
+- **Collected Repositories**: 100
+  
+# Data Wrangling
+
+## Libraries Required
+
+```{r setup, warning=FALSE, message=FALSE}
+if (!require('tidyverse')) install.packages('tidyverse'); library('tidyverse')
+if (!require('tidyr')) install.packages('tidyr'); library('tidyr')
+if (!require('DALEX')) install.packages('DALEX'); library('DALEX')
+if (!require('DALEXtra')) install.packages('DALEXtra'); library('DALEXtra')
+if (!require('httr')) install.packages('httr'); library('httr')
+if (!require('jsonlite')) install.packages('jsonlite'); library('jsonlite')
+if (!require('stringr')) install.packages('stringr'); library('stringr')
+if (!require('skimr')) install.packages('skimr'); library('skimr')
+if (!require('recipes')) install.packages('recipes'); library('recipes')
+if (!require('gh')) install.packages('gh');library(gh)
+if (!require('kableExtra')) install.packages('kableExtra'); library('kableExtra')
+if (!require('RColorBrewer')) install.packages('RColorBrewer'); library('RColorBrewer')
+if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
+if (!require('ggthemes')) install.packages('ggthemes'); library('ggthemes')
+
+```
+
+## Environment Variable Setup
+
+**For security, we load the GitHub personal access token from an environment variable.**
+
+```{r access token}
+Sys.setenv(GITHUB_TOKEN = "")
+token <- Sys.getenv("GITHUB_TOKEN")
+```
+
+
+**Checking the Repository Count for the Azure Topic**
+
+```{r verifying Repository Count}
+ topic <- "azure" 
+ 
+ repo_count <- gh("GET /search/repositories", q = paste0("topic:", topic), 
+                  per_page = 1, .token = token)$total_count 
+ 
+ if (repo_count > 500) {
+   cat(paste("The chosen topic", topic, "has more than 500 repositories.", "\n"))
+   cat("Total Repositories For Topic Azure is:", repo_count, "\n")
+ }else {
+  cat(paste("The chosen topic", topic, "has fewer than 500 repositories.", "\n"))
+ }
+```
+
+**Data Collection**
+
+Fetching 100 repositories related to Azure
+
+```{r 100 repositories}
+
+repositories <- gh::gh("GET /search/repositories", 
+                       q = "topic:azure", 
+                       per_page = 100, .token = token)
+
+```
+
+**Data Cleaning and Transformation**
+
+```{r Data Manipulation}
+repos_df <- map_dfr(repositories$items, ~ data.frame(
+  full_name = .x$full_name,
+  created_at = .x$created_at %||% NA,
+  size = .x$size %||% NA,
+  language = .x$language %||% NA, 
+  topics = ifelse(length(.x$topics) > 0, paste(.x$topics, collapse = ", "), "No Topics"), 
+  stringsAsFactors = FALSE
+))
+
+
+repos_df <- repos_df |>
+  drop_na() |>
+  filter(!is.na(full_name) & !is.na(language) & 
+         !is.na(topics) & !is.na(size)) |> 
+  mutate(
+    language = ifelse(language == "", NA, language),
+    topics = ifelse(is.na(topics) | topics == "", "No Topics", topics)) |>
+  distinct(full_name, .keep_all = TRUE) |>  
+  arrange(size)
+
+
+```
+
+# Data Summary
+
+## Table1: Repository Summary Table Sorted by Size
+
+```{r Repository Summary}
+repos_df  <-  head(repos_df,10)
+caption_repo <- "<div style='background-color: #4CAF50; 
+                    color: white; padding: 10px; text-align: center; 
+                    font-size: 18px; font-weight:bold;'>RepositorySummary</div>"
+
+repos_table <- kbl(repos_df, format = "html", caption =caption_repo ) |>
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                  full_width = TRUE, position = "center") |>
+    
+    column_spec(1, width = "3em", background = "#e6f7ff") |> 
+    column_spec(2, background = "#f0e68c") |>
+    column_spec(3, background = "#e0f7fa") |>
+    column_spec(4, background = "#e0f7fa", color = "darkgreen") |>
+    column_spec(5, background = "#f0e68c", color = "darkgreen") |>
+    row_spec(0, bold = TRUE, color = "white", background = "#4CAF50") |>
+    row_spec(1:nrow(repos_df), color = "black")
+
+  repos_table
+```
+
+**Table-1 Interpretation**
+
+- **Diverse Languages**: The repositories use a variety of programming languages, including Go, Python, PowerShell, JavaScript, Java, C#, and TypeScript, reflecting a diverse technological stack in Azure-related projects.
+
+- **Topics Coverage**: Some repositories lack specified topics, while others cover a broad range of subjects like authentication, cloud services, machine learning, and devops, indicating varied focus areas. 
+
+- **Active Community**: The creation dates range from as recent as 2023 to older repositories started back in 2013, showcasing a long-standing and active community around Azure. 
+
+- **Size Variation**: Repository sizes vary, with the smallest being 451 KB and the largest at 4167 KB, implying different levels of project complexity and scope. 
+
+**These insights highlight the diversity and activity within the Azure-related repositories on GitHub.**
+
+
+## Table2: Repository Owners Summary Table Sorted by Public Repository
+
+```{r Repository Owners Summary}
+
+get_user_data <- function(username, token) {
+  user <- gh("GET /users/:username", username = username, .token = token)
+  data.frame(
+    login = user$login,
+    public_repos = user$public_repos,
+    created_at = user$created_at,
+    followers = user$followers
+  )
+}
+
+repos_data <- gh("GET /search/repositories", q = "topic:azure", per_page = 100, .token = token)
+repos <- repos_data$items
+
+owner_usernames <- unique(sapply(repos, function(x) x$owner$login))
+owner_data <- bind_rows(lapply(owner_usernames, get_user_data, token = token))
+owner_data <- arrange(owner_data, desc(public_repos))
+caption_owners = "<div style='background-color: #A52A2A; 
+                    color: white; padding: 10px; text-align: center; 
+                    font-size: 18px; font-weight: bold;'>Repository Owners Summary</div>"
+kbl(head(owner_data,10), format = "html", caption = caption_owners) |>
+  
+kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+                full_width = TRUE,
+                position = "center",
+                font_size = 15) |>
+  row_spec(0, bold = TRUE, color = "white", background = "#A52A2A") |>
+  row_spec(1:2, background = "#F5CBA7", color = "black") |>
+  row_spec(3:4, background = "skyblue", color = "black") |>
+  row_spec(5:6, background = "#F5CBA7", color = "black") |>
+  row_spec(7:8, background = "skyblue", color = "black") |>
+  row_spec(9:10, background = "#F5CBA7", color = "black")
+```
+
+**Table-2 Interpretation**
+
+- **Diverse Contributors**: Both major organizations (Microsoft, Google) and individual contributors (Ramit Surana) play significant roles. 
+
+- **High Influence**: Repositories from these owners indicate high activity and community influence, as reflected by the follower counts. 
+
+- **Varied Focus Areas**: Contributions range from core cloud infrastructure to documentation and security, illustrating the breadth of the Azure ecosystem.
+
+
+## Table3: Most Recently Closed Issues Table Sorted by Closed date
+
+
+```{r Most Recently Closed Issues}
+get_recent_closed_issue <- function(owner, repo, token) {
+  issues <- tryCatch(
+    gh("GET /repos/:owner/:repo/issues", owner = owner, repo = repo, state = "closed", .token = token),
+    error = function(e) {
+      message(paste("Error fetching issues for", owner, "/", repo, ":", e$message))
+      return(NULL)
+    }
+  )
+  if (is.null(issues) || length(issues) == 0) {
+    return(data.frame(
+      full_name = paste(owner, repo, sep = "/"),
+      title = NA,
+      created_at = NA,
+      closed_at = NA,
+      days_to_close = NA,
+      stringsAsFactors = FALSE
+    ))
+  }
+  
+  recent_issue <- issues[[1]]
+  title <- recent_issue$title %||% NA
+  created_at <- recent_issue$created_at %||% NA
+  closed_at <- recent_issue$closed_at %||% NA
+
+  days_to_close <- if (!is.na(created_at) && !is.na(closed_at)) {
+    as.numeric(difftime(ymd_hms(closed_at), ymd_hms(created_at), units = "days"))
+  } else {
+    NA
+  }
+  
+  data.frame(
+    full_name = paste(owner, repo, sep = "/"),
+    title = title,
+    created_at = created_at,
+    closed_at = closed_at,
+    days_to_close = days_to_close,
+    stringsAsFactors = FALSE
+  )
+}
+
+repos_data <- gh("GET /search/repositories", q = "topic:azure", per_page = 100, .token = token)
+repos <- repos_data$items
+repo_list <- lapply(repos, function(x) list(owner = x$owner$login, repo = x$name))
+issue_data <- bind_rows(lapply(repo_list, function(x) get_recent_closed_issue(x$owner, x$repo, token)))
+issue_data <- issue_data |> arrange(desc(closed_at))
+caption_issues = "<div style='background-color: #4CAF50; 
+                    color: white; padding: 10px; text-align: center; 
+                    font-size: 18px; font-weight: bold;'>Most Recently Closed Issues for Azure Repositories</div>"
+
+kable(head(issue_data, 10), format = "html", caption = caption_issues) |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) |>
+  column_spec(1, bold = TRUE, color = "darkblue", background = "#c8e6c9") |>   
+  column_spec(2, background = "#a5d6a7") |>                                
+  column_spec(3, background = "#81c784") |>
+  column_spec(4, bold = TRUE, color = "darkblue", background = "#c8e6c9",
+              border_left = TRUE, width = "8em") |> 
+  column_spec(5, background = "#81c784") |>   # Action button style
+  row_spec(0, bold = TRUE, color = "white", background = "#DC143C")   
+
+```
+
+**Table-3 Interpretation**
+
+- **Efficiency:** Most issues were resolved quickly, reflecting efficient issue handling.
+
+- **Diverse Focus Areas:** Issues addressed range from bug fixes and enhancements to support queries and test configurations.
+
+- **Azure SDKs:** Multiple issues closed are related to Azure SDKs, indicating ongoing improvements and support.
+
+**These insights highlight the responsiveness and diverse focus areas in managing Azure repository issues.**
+
+
+# Data Visualizations
+
+## Plot1 Bar Plot for Top 5 Co-occurring Topics
+
+```{r plotting Bar Plot, fig.align="left", fig.width = 14, fig.height=8}
+
+topics_list <- c()
+for (repo in repositories$items) {
+  if (!is.null(repo$topics) && length(repo$topics) > 0) {
+    topics_list <- c(topics_list, paste(repo$topics, collapse = ", "))
+  }
+}
+
+topics_df <- data.frame(
+  topic = unlist(strsplit(paste(na.omit(topics_list), collapse = ", "), ", ")), 
+  stringsAsFactors = FALSE
+)
+
+top_5_topics <- topics_df |>
+  filter(topic != "azure") |>
+  count(topic, sort = TRUE) |>
+  head(5)
+
+plt1 <- ggplot(top_5_topics, aes(x = reorder(topic, n), y = n, fill = topic)) + 
+  geom_bar(stat = "identity", color = "black", linewidth = 0.7) +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(title = "Top 5 Topics Co-occurring with Azure",
+       x = "Topic",
+       y = "Count",
+       fill = "Topic") +
+  theme_minimal(base_size = 15) + 
+  theme(legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5, face = "bold", size = 18),
+        axis.text.x = element_text(size = 12, face = "italic"),
+        panel.background = element_rect(fill = "lightyellow", color = NA)) +
+  coord_flip()
+suppressWarnings(print(plt1))
+
+```
+
+**Pattern Inference:**
+
+**Key Insights from "Top 10 Topics Co-occurring with Azure"**
+
+  - **AWS**: 35 occurrences, strong interconnections in cloud discussions.
+  
+  - **GCP**: 25 occurrences, highlights competitive and complementary    
+  relationships.
+  
+  - **Cloud**: 23 occurrences, emphasizes Azure's role in the broader
+  ecosystem.
+  
+  - **Kubernetes**: 20 occurrences, suggests significant use in
+  containerization.
+  
+  - **Hacktoberfest**: 18 occurrences, reflects support for community-driven
+  events.
+
+**Interpretation**
+
+  - **Cloud Ecosystem**: Azure's integral role highlighted by frequent mentions
+  of AWS, GCP, and Cloud.
+
+  - **Containerization**: Kubernetes mentions indicate Azure's relevance in
+  modern development practices.
+  
+  - **Community Engagement**: Hacktoberfest shows Azure's participation in the
+  open-source community.
+
+
+## Plot2: Line Chart for Repository Creation Over Time
+
+```{r plotting Line Chart Plot, fig.align="left", fig.width = 14, fig.height=8}
+repos_time <- map_dfr(repositories$items, ~ data.frame(
+  full_name = .x$full_name,
+  created_at = .x$created_at %||% NA,
+  size = .x$size %||% NA,
+  language = .x$language %||% NA, 
+  topics = ifelse(length(.x$topics) > 0, paste(.x$topics, collapse = ", "), "No Topics"), 
+  stringsAsFactors = FALSE
+))
+
+repos_time$created_at <- as.Date(repos_time$created_at)
+repos_time$year <- format(repos_time$created_at, "%Y")
+repos_yearly <- repos_time |>
+  group_by(year) |>
+  summarize(count = n()) |>
+  arrange(year)
+
+repos_yearly$legend_label <- paste(repos_yearly$year, "(", repos_yearly$count, ")", sep = "")
+plt2 <- ggplot(repos_yearly, aes(x = as.integer(year), y = count, group = 1)) +
+  geom_line(aes(color = factor(legend_label)), linewidth = 2) +  
+  geom_point(aes(color = factor(legend_label)), size = 3) + 
+  scale_color_viridis_d(option = "C", direction = -1) + 
+  labs(
+    title = "Trend of Repository Creation Over Time",
+    x = "Year",
+    y = "Number of Repositories",
+    color = "Year"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 18),
+    axis.title.x = element_text(face = "bold", size = 15),
+    axis.title.y = element_text(face = "bold", size = 15),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+    axis.text.y = element_text(size = 12),
+    panel.background = element_rect(fill = "#d1e7dd", color = NA),
+    plot.background = element_rect(fill = "#eef5db", color = NA), 
+    panel.grid.major = element_line(linewidth = 0.1, linetype = 'solid', colour = "gray"),
+    panel.grid.minor = element_blank()
+  ) +
+  scale_x_continuous(breaks = seq(
+    min(as.integer(repos_yearly$year)),
+    max(as.integer(repos_yearly$year)),
+    by = 1
+  ))
+suppressWarnings(print(plt2))
+```
+
+
+**Patern Inference:**
+
+**Key Insights**
+
+  - **Initial Low Activity (2010-2013)**: Minimal repository creation. 
+
+  - **Significant Growth (2014-2017)**: Rapid increase, peaking in 2017. 
+
+  - **Fluctuations Post-2017**: Varied creation rates, with a notable rise in     2023. 
+
+**Inference**
+
+  - **Growth and Interest**: Significant growth period indicates heightened         interest in Azure. 
+
+  - **Market Dynamics**: Fluctuations reflect market changes and technology         trends. 
+
+  - **Recent Trends**: Renewed interest or stabilization from 2021 to 2023.
+
+# Conclusion
+
+- This report provides a comprehensive analysis of the Azure topic on GitHub, including repository characteristics, owner details, and trends in repository creation.
+- Azure’s popularity is evident from the consistent growth in repository creation over time and its common co-occurrence with topics like AWS and GCP.
+
+
+
+
+
+
+
+
+

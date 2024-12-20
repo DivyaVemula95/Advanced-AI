@@ -1,0 +1,405 @@
+---
+title: "Assignment 1 : Hazardous Waste Landfilled"
+author: "Divya Vemula"
+date: "2024-10-17"
+output: html_document
+---
+
+## Overview
+
+The dataset comprises annual data on hazardous waste landfilled, measured in metric tons, sourced from various entities. It identifies the country or region, facilitating trend analysis and enabling comparisons of hazardous waste disposal practices across different locations.
+
+## Dataset Information
+
+- **Dataset URL**:(https://data.un.org/Data.aspx?d=ENV&f=variableID%3a1841)
+- **Source**: Environment Statistics Database(UNSD) | Wsate | Hazardous Waste Landfilled
+- **Variables Included**:
+  - **Country or Area**: Name of the country or region
+  - **Year**:  The year of the observation
+  - **Value**: Quantity of hazardous waste landfilled
+  - **Unit**:  Measurement unit for the "Value"
+  
+## Reading, Cleaning and Preprocessing the Data
+
+**Load required Dependencies**
+```{r setup, warning=FALSE, message=FALSE}
+if (!require('tidyverse')) install.packages('tidyverse'); library('tidyverse')
+if (!require('tidyr')) install.packages('tidyr'); library('tidyr')
+if (!require('kableExtra')) install.packages('kableExtra'); library('kableExtra')
+if (!require('RColorBrewer')) install.packages('RColorBrewer'); library('RColorBrewer')
+if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
+if (!require('ggthemes')) install.packages('ggthemes'); library('ggthemes')
+
+```
+
+**Load the dataset**
+
+check **if file exits** in the directory
+```{r File Exist or not}
+file.exists("Assignment1-Vemula.csv")
+```
+**Load the data**
+```{r loading dataset}
+df <- read_csv(file="Assignment1-Vemula.csv", show_col_types = FALSE)
+colnames(df)
+```
+**Analyse the structure of the dataset**
+```{r dataset structure}
+kbl(tail(df,n=12), caption = "Environmental Data Summary") %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    full_width = FALSE,
+    position = "center",
+    font_size = 14
+  ) %>%
+  column_spec(1, bold = TRUE, color = "blue") %>%
+  column_spec(2, italic = TRUE, color = "darkgreen") %>%
+  column_spec(3, bold = TRUE, color = "red") %>%
+  column_spec(4, background = "#F5F5F5", color = "purple") %>%
+  column_spec(5, bold = TRUE, color = "orange")
+```
+
+**Handling unwanted columns, Transform the variables names and display the Data table**
+
+**Note** Removing the Value Footnotes, and the Unit columns which has no significance
+```{r removing metadata}
+df_environment <- df |> select(-contains("Footnote")) |> 
+  select(-contains("Unit"))
+
+colnames(df_environment)=c("Country_or_Area","Year","Value")
+
+kbl(tail(df_environment,n=12)) |>
+  kable_styling(
+    bootstrap_options = c("bordered", "hover", "striped", "responsive"),
+    full_width = TRUE,
+    font_size = 14,
+    position = "center"
+  ) |>
+  column_spec(1, bold = TRUE, border_right = TRUE, background = "#D6EAF8") |>
+  column_spec(2, italic = TRUE, border_right = TRUE, background = "#D4EFDF") |>
+  column_spec(3, color = "#2E4053", background = "#F9E79F") |>
+  
+  row_spec(0, bold = TRUE, font_size = 16, 
+           background = "#1C2833", color = "white")|>
+  add_header_above(c("Country Data" = 1, "Yearly Details" = 2),
+           background = "#154360", color = "white", bold = TRUE, font_size = 18)|>
+  add_header_above(c("Hazardous Waste Landfilled" = 3), 
+           background = "#f67", color = "white", bold = TRUE, font_size = 18)
+
+```
+
+**Presence of Missing Values**
+```{r Missing Values}
+na_count <- sum(is.na(df_environment))
+na_summary <- colSums(is.na(df_environment))
+na_count
+
+```
+**Handling Missing Values**
+
+As there are no missing values in the dataset, no further handling is necessary.
+
+**Transforming/Converting the values in Value column from tonnes to megatonnes**
+
+**Note:** To enhance interpretability, unit conversion will be performed, as large numbers can be challenging to comprehend.
+
+```{r Converting the values}
+df_environment <- df_environment |>
+mutate(Values_megatonnes = Value/1000000) |>
+select(Country_or_Area, Year, Values_megatonnes)
+
+```
+**Summary Statistics**
+```{r Summary}
+kbl(summary(df_environment)) |>
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    full_width = FALSE,
+    position = "center",
+    font_size = 16
+  ) |>
+  column_spec(1, bold = TRUE, color = "#2E8B57", background = "#F0FFF0") |>
+  column_spec(2, bold = TRUE, color = "#1E90FF", background = "#F0F8FF") |>
+  column_spec(3, bold = TRUE, color = "#FF4500", background = "#FFF5EE") |>
+  column_spec(4, bold = TRUE, color = "#FF4500", background = "#FFF5EE") |>
+  row_spec(0, background = "#4682B4", color = "white", bold = TRUE) |>
+  add_header_above(c("Summary Statistics" = 4), bold = TRUE, 
+                   background = "#2F4F4F", color = "white") |>
+  add_footnote("Note: Values are in megatonnes.", notation = "symbol")
+```
+
+## Analysis of Tidynes of Original DataSet
+
+**Tidy Data Principles**
+
+1. Each variable must have its own column.
+
+2. Each observation must have its own row.
+
+3. Each value must have its own cell.
+
+
+**Evaluation of Data Tidiness**
+
+Each row in the dataset represents a single observation: a specific country or area in a specific year with a value measured in tonnes. All columns are appropriately named and follow the tidy data principles.
+
+**Conclusion**
+
+The dataset is Tidy because it adheres to all three principles of Data Tidiness. Each variable is in its own column, each observation has its own row, and each value is in its own cell.
+
+
+## 1. Transforming the Data to become Untidy with pivot_wider() and Tidy with pivot_longer()
+
+**Note:** The data is currently in a tidy format; however, I will use the pivot_wider function on the Year column to transform it into an untidy format for the purpose of performing untidy analyses.
+
+### Untidy with pivot_wider()
+```{r Untidy pivot_wider}
+untidy_df_environment <- df_environment |>
+  pivot_wider(names_from = Year, values_from = Values_megatonnes)
+
+kable(head(untidy_df_environment[, 1:10],n=10), caption = "Untidy Dataset with PivotWider") |>
+  kable_styling(
+    full_width = FALSE,
+    position = "center",
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    font_size = 12,
+    fixed_thead = TRUE
+  ) |>
+  column_spec(which(1:10 %% 2 == 0), 
+              background = "lightgreen") |> 
+  column_spec(which(1:10 %% 2 != 0), 
+              background = "#f98")
+```
+
+**Explanation of Why the Data is Now Untidy**
+
+**Variable in Column Names**: The Year values have become column names, violating the principle that each variable should have its own column. Year is no longer treated as a variable.
+
+**Loss of Distinct Observations**: Each row should represent a unique observation. But the data in each row shows across multiple years, so it violates the tidy principles.
+
+**Obscured Value Meaning**: While each cell contains a single value, the relationship between the Country and Year is lost. This makes it harder to analyze trends over time.
+
+**Conclusion**
+
+Overall, the transformation complicates analysis and interpretation, moving the dataset away from tidy principles.
+
+
+### Tidy up the data using pivot_longer()
+```{r Tidy pivot_longer}
+tidy_df_environment <- untidy_df_environment |>
+  pivot_longer(
+    cols = starts_with(c("20","19")),
+    names_to = "Year",
+    values_to = "Values_megatonnes"
+  )
+
+tidy_df_environment <- tidy_df_environment |>
+  arrange(desc(Values_megatonnes))
+
+kable(head(tidy_df_environment,n=10), caption = "Tidy Dataset with PivotLonger") |>
+  kable_styling(
+    full_width = FALSE,
+    position = "center",
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    font_size = 12,
+    fixed_thead = TRUE
+  ) |>
+  column_spec(which(1:ncol(tidy_df_environment) %% 2 == 0),
+              bold = TRUE,color = "purple") |> 
+  column_spec(which(1:ncol(tidy_df_environment) %% 2 != 0),
+              bold = TRUE, color = "green")
+```
+**Explanation of Why the Data is Now Tidy**
+
+**Each Variable in Its Own Column:** Each variable such as Country_or_Area, Year, and Values_megatonnes has its own dedicated column, making it clear what each piece of data represents.
+
+**Unique Observations as Rows:** Each row corresponds to a unique observation, such as a specific country and year with its associated value. This structure allows for easy filtering and analysis.
+
+**Consistent Data Structure:** This dataset maintains a consistent format where each observation can be treated independently, facilitating straightforward data manipulation, aggregation, and visualization.
+
+**Conclusion:**
+
+Overall, this structure makes it easy to analyze trends and relationships within the data.
+
+
+## 2. Perform Untidy Using Unite and Tidy using Separate Function
+
+**Note:** The data is currently tidy; however, I will be uniting the Year and Country_or_Area columns to create an untidy format for the purpose of conducting untidy analyses.
+
+### Using Unite Function
+```{r Untidy Unite}
+combined_data <- df_environment |>
+  unite("Country_Year", `Country_or_Area`, Year, sep = "_", remove = FALSE) |>
+  select(-c(Year,Country_or_Area))
+
+kable(tail(combined_data,n=12)) |>
+  kable_styling(
+    full_width = FALSE,
+    position = "center",
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    font_size = 14,
+    fixed_thead = TRUE,
+    latex_options = "striped"
+  ) |>
+  column_spec(1, border_right = TRUE, background = "#DFF0D8") |>
+  column_spec(2, background = "#F9E79F", bold = TRUE) |>
+  row_spec(1:2, background = "#FADBD8", color = "black") |>
+  row_spec(3:4, background = "#D4E6F1", color = "black") |>
+  row_spec(5:6, background = "#F5CBA7", color = "black") |>
+  row_spec(7:8, background = "#D5F5E3", color = "black") |>
+  row_spec(9:10, background = "#FDEDEC", color = "black") |>
+  add_header_above(bold = TRUE, background = "#6A5ACD",c("UnTidy dataset" = 2))
+```
+
+**Explanation why the Data is Untidy**
+
+**Combined Variables:** The Country_Year column merges country names and years into a single string, making it difficult to analyze each variable separately.
+
+**Lack of Clear Structure:** Each observation does not have its own row for distinct variables, complicating data manipulation and analysis.
+
+**Inconsistent Representation:** This format prevents straightforward aggregation and visualization, hindering effective insights from the data.
+
+**Conclusion**
+Overall, the dataset is untidy because it violates the Tidy principles.
+
+### Tidy Up Using separate Function
+```{r Tidy separate}
+separated_data <- combined_data |>
+  separate(Country_Year, into = c("Country_or_Area", "Year"), sep = "_")
+
+kable(tail(separated_data,n=10)) |>
+  kable_styling(
+    full_width = TRUE,
+    font_size = 16,
+    bootstrap_options = c("striped", "hover", "condensed"),
+    latex_options = c("scale_down", "hold_position")
+  ) |>
+  column_spec(1, bold = TRUE, color = "#FF4500", background = "#FFFFE0") |>
+  column_spec(2, italic = TRUE, color = "#2E8B57", background = "#F5FFFA") |>
+  column_spec(3, bold = TRUE, color = "#1E90FF", background = "#E6E6FA") |>
+  
+  row_spec(0, background = "#4B0082", color = "white", 
+           bold = TRUE, font_size = 18) |>
+  add_header_above(c("Tidy Dataset" = 3), bold = TRUE, 
+           background = "#6A4", color = "white", font_size = 20)
+
+```
+**Explanation why the Data is Tidy now**
+
+**Each Variable is in Its Own Column:** The dataset has separate columns for Country_or_Area, Year, and Values_megatonnes, clearly distinguishing different variables.
+
+**Each Observation is a Unique Row:** Each row represents a unique combination of country and year, ensuring that every observation can be analyzed independently.
+
+**Consistent Structure:** The format allows for straightforward data manipulation, aggregation, and visualization, making it easy to analyze trends and relationships within the data.
+
+**Conclusion**
+
+The dataset is tidy because it adheres to all three principles of Data Tidiness.
+
+
+## Data visualization with ggplot
+
+### Plot1: Trend of sum of Values Over grouped Countries
+```{r plotting Pie Plot, fig.align="left", fig.width = 14, fig.height=8}
+sort_df_environment <- df_environment |>
+  group_by(Country_or_Area) |>
+  summarise(Total_Values = sum(Values_megatonnes, na.rm = TRUE)) |>
+  arrange(desc(Total_Values))
+
+
+plt1 <- ggplot(head(sort_df_environment, 6), 
+               aes(x = "", y = Total_Values, fill = Country_or_Area)) +
+  geom_col(show.legend = TRUE) +
+  coord_polar(theta = "y") +
+  geom_text(aes(label = paste0(round(Total_Values, 2))), 
+            position = position_stack(vjust = 0.5),color="maroon",size = 6) +
+  labs(
+    title = "Top 6 Countries by Values (in Mega Tonnes)",
+    x = "",
+    y = "Total Value (Mega Tonnes)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 25),
+    axis.text = element_blank() 
+  ) +
+  scale_fill_viridis_d()
+suppressWarnings(print(plt1))
+```
+**Plot1 Pattern inference**
+
+Russian Federation's total waste landfill is almost equal to that of the total landfill by other top 5 countries, combined together
+
+
+### Plot2: Scatter Plot of observations based on year and Values in megatonnes based on Country
+```{r plotting Scatter Plot, fig.align="left", fig.width = 14, fig.height=8}
+sorted_data <- df_environment |> arrange(desc(Values_megatonnes))
+
+g <- ggplot(head(sorted_data,n=10), 
+            aes(x = Year, y = Values_megatonnes, color = Country_or_Area)) +
+  geom_point(size = 5, alpha = 0.6) +
+  geom_smooth(method = "loess", linetype = "dashed", se = FALSE) +
+  facet_wrap(~ Country_or_Area, scales = "free_y", ncol = 2, nrow = 10) +
+  theme_minimal(base_size = 15) +
+  labs(
+    title = "Value Over Time by Country",
+    x = "Year",
+    y = "Value (megatonnes)"
+  )
+plt2 <- g + theme(
+  panel.background = element_rect(fill = 'khaki'),
+  panel.grid.major = element_line(colour = "burlywood", linewidth = 1.5),
+  panel.grid.minor = element_line(colour = "tomato", 
+                                  linewidth = .25, linetype = "dashed"),
+  panel.border = element_blank(),
+  axis.line.x = element_line(colour = "darkorange", 
+                             linewidth = 1.5, lineend = "butt"),
+  axis.line.y = element_line(colour = "darkorange", linewidth = 1.5),
+  plot.background = element_rect(fill = "lightgreen"),
+  plot.margin = unit(c(1, 1, 1, 1), "cm"),
+  strip.text = element_text(size = 10, face = "bold"),
+  axis.text.x = element_text(angle = 45, hjust = 1),
+  axis.text.y = element_text(angle = 45,size = 10)
+) +
+  
+  scale_y_continuous(expand = expansion(mult = c(0.2, 0.3))) +
+  scale_x_continuous(expand = expansion(mult = c(0.2, 0.3)))
+suppressWarnings(print(plt2))
+  
+```
+**Plot2 Pattern inference**
+South Africa has done a good job in reducing their landfill by a greater extent 2017 to 2022. A similar pattern can be observed in Russian Federation but with an uptick in the value in 2009
+
+
+
+### Plot 3: Bar Plot of observations based on year,countries and values in Mega Tonnes
+
+```{r plotting Bar Plot, fig.align="left", fig.width = 14, fig.height=8}
+plt3 <- ggplot(head(sorted_data,n=20), 
+               aes(x = Year, y = Values_megatonnes, fill = Country_or_Area)) +
+  geom_bar(stat = "identity", show.legend = TRUE) +
+  coord_flip() +
+  geom_text(aes(label = paste0(round(Values_megatonnes, 2))), 
+            position = position_stack(vjust = 0.5),color="maroon",size = 7)+
+  labs(
+    title = "Values by Country",
+    x = "Year",
+    y = "Values (in Megatonnes)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 20, 
+                              face = "bold", color = "#4C4C4C"),
+    axis.text.y = element_text(size = 14, face = "bold", color = "#4C4C4C"),
+    axis.text.x = element_text(size = 12, face = "italic", color = "#4C4C4C"),
+    axis.title.x = element_text(size = 16, face = "bold", color = "#4C4C4C"),
+    axis.title.y = element_text(size = 16, face = "bold", color = "#4C4C4C"),
+    panel.grid.major = element_line(color = "grey80")
+  ) +
+  scale_fill_viridis_d()
+
+suppressWarnings(print(plt3))
+```
+**Plot3 Pattern inference**
+
+Kazakhstan had the most landfill in the year 2020, whereas Russian Federation has consistently reduced the waste after its highest dump of 82 Megatonnes in 2002, but still greater than the total landfill by other countries

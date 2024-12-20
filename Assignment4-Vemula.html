@@ -1,0 +1,1259 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html><head></head><body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div>
+
+
+
+<h1 class="title toc-ignore">Assignment 4 : Reuters newswire</h1>
+<h4 class="author">Divya Vemula</h4>
+<h4 class="date">2024-12-06</h4>
+
+</div>
+
+
+<div class="section level2">
+<h2>Overview</h2>
+<p><strong>Data for this assignment:</strong></p>
+<ul>
+<li><strong>Dataset</strong>: Reuters newswire classification
+dataset</li>
+<li><strong>Description</strong>: This is a dataset of 11,228 newswires
+from Reuters, labeled over 46 topics.</li>
+<li><strong>Objective</strong>: Each article has only one topic. The
+goal is to predict the topic for each article.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2>Load Required Libraries</h2>
+<pre class="r"><code>if (!require(&#39;tidyverse&#39;)) install.packages(&#39;tidyverse&#39;); library(&#39;tidyverse&#39;)
+if (!require(&#39;keras&#39;)) install.packages(&#39;keras&#39;); library(&#39;keras&#39;)
+if (!require(&#39;kableExtra&#39;)) install.packages(&#39;kableExtra&#39;); library(&#39;kableExtra&#39;)
+if (!require(&#39;RColorBrewer&#39;)) install.packages(&#39;RColorBrewer&#39;); library(&#39;RColorBrewer&#39;)
+if (!require(&#39;ggplot2&#39;)) install.packages(&#39;ggplot2&#39;); library(&#39;ggplot2&#39;)
+if (!require(&#39;ggthemes&#39;)) install.packages(&#39;ggthemes&#39;); library(&#39;ggthemes&#39;)
+if (!require(&#39;h2o&#39;)) install.packages(&#39;h2o&#39;); library(&#39;h2o&#39;)
+if (!require(&#39;kableExtra&#39;)) install.packages(&#39;kableExtra&#39;); library(&#39;kableExtra&#39;)</code></pre>
+</div>
+<div class="section level2">
+<h2>Load test data and trained models</h2>
+<pre class="r"><code>x_test &lt;- read_rds(&quot;x_test.rds&quot;)
+y_test &lt;- read_rds(&quot;y_test.rds&quot;)
+
+model_lstm &lt;- load_model_hdf5(&quot;model_lstm.h5&quot;)
+model_gru &lt;- load_model_hdf5(&quot;model_gru.h5&quot;)
+model_bilstm &lt;- load_model_hdf5(&quot;model_bilstm.h5&quot;)
+model_bigru &lt;- load_model_hdf5(&quot;model_bigru.h5&quot;)
+model_conv1d &lt;- load_model_hdf5(&quot;model_conv1d.h5&quot;)
+
+history_lstm &lt;- read_rds(&quot;history_lstm.rds&quot;)
+history_gru &lt;- read_rds(&quot;history_gru.rds&quot;)
+history_bilstm &lt;- read_rds(&quot;history_bilstm.rds&quot;)
+history_bigru &lt;- read_rds(&quot;history_bigru.rds&quot;)
+history_conv1d &lt;- read_rds(&quot;history_conv1d.rds&quot;)</code></pre>
+</div>
+<div class="section level2">
+<h2>Num of documents in total using y_test</h2>
+<pre class="r"><code>total_docs &lt;- nrow(y_test)
+total_docs</code></pre>
+<pre><code>## [1] 2246</code></pre>
+</div>
+<div class="section level2">
+<h2>Number of documents in each topic using y_test</h2>
+<pre class="r"><code>topic_count &lt;- as.data.frame(table(max.col(y_test) - 1))
+colnames(topic_count) &lt;- c(&quot;topic_id&quot;, &quot;num_test_docs&quot;)
+kable(topic_count, caption = &quot;Topic Count Summary&quot;) %&gt;%
+  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;, &quot;bordered&quot;), full_width = TRUE) %&gt;%
+  column_spec(1, bold = TRUE, color = &quot;blue&quot;) %&gt;%
+  column_spec(2, color = &quot;darkred&quot;) %&gt;%
+  row_spec(0, bold = TRUE, background = &quot;#FDE74C&quot;) %&gt;%
+  row_spec(1:23, background = &quot;#AADEA7&quot;) %&gt;%
+  row_spec(24:46, background = &quot;#D1C4E9&quot;)</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive table-bordered" style="margin-left: auto;margin-right: auto;">
+<caption>
+Topic Count Summary
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;font-weight: bold;background-color: rgba(253, 231, 76, 255) !important;">
+topic_id
+</th>
+<th style="text-align:right;font-weight: bold;background-color: rgba(253, 231, 76, 255) !important;">
+num_test_docs
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+0
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+12
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+1
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+105
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+2
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+20
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+3
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+813
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+4
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+474
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+5
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+6
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+14
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+7
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+8
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+38
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+9
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+25
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+10
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+30
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+11
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+83
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+12
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+13
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+13
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+37
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+14
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+15
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+16
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+99
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+17
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+12
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+18
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+20
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+19
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+133
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+20
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+70
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+21
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+27
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(170, 222, 167, 255) !important;">
+22
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(170, 222, 167, 255) !important;">
+7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+23
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+12
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+24
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+19
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+25
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+31
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+26
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+27
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+28
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+10
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+29
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+30
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+12
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+31
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+13
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+32
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+10
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+33
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+34
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+35
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+36
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+11
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+37
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+38
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+39
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+40
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+10
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+41
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+42
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+43
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+44
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;background-color: rgba(209, 196, 233, 255) !important;">
+45
+</td>
+<td style="text-align:right;color: darkred !important;background-color: rgba(209, 196, 233, 255) !important;">
+1
+</td>
+</tr>
+</tbody>
+</table>
+<div class="section level3">
+<h3>Interpretation Of Topic Count Summary Table</h3>
+<ul>
+<li><p><strong>Imbalance</strong>: There is a significant imbalance in
+the number of test documents per topic, ranging from 1 to 813
+documents.</p></li>
+<li><p><strong>High Representation</strong>: Topics 3, 4, 19, 1, and 16
+are highly represented.</p></li>
+<li><p><strong>Low Representation</strong>: Topics 45, 14, 37, 27, and
+29 have very few documents, indicating underrepresentation.</p></li>
+</ul>
+<p><strong>Note:</strong> These insights highlight the need to balance
+the dataset to ensure robust model performance across all topics.</p>
+</div>
+</div>
+<div class="section level2">
+<h2>Plotting 1(default plot) history using Test set</h2>
+<div class="section level3">
+<h3>Evaluate model, model summary and plot history using Test set</h3>
+<pre class="r"><code>evaluate_model &lt;- function(model, history, model_name) {
+  cat(&quot;### Model Summary for&quot;, model_name, &quot;\n&quot;)
+  print(summary(model))  # Ensure the summary prints correctly
+  cat(&quot;Plotting training history for&quot;, model_name, &quot;\n&quot;)
+  print(plot(history, smooth = TRUE))  
+  cat(&quot;Evaluating performance on the test set...\n&quot;)
+  scores &lt;- model %&gt;% evaluate(x_test, y_test, verbose = 0)
+  cat(&quot;Test accuracy for&quot;, model_name, &quot;:&quot;, scores[[&quot;accuracy&quot;]], &quot;\n&quot;)
+  return(scores[[&quot;accuracy&quot;]])
+}
+
+acc_lstm &lt;- evaluate_model(model_lstm, history_lstm, &quot;LSTM&quot;)</code></pre>
+<pre><code>## ### Model Summary for LSTM 
+## Model: &quot;sequential&quot;
+## ________________________________________________________________________________
+##  Layer (type)                       Output Shape                    Param #     
+## ================================================================================
+##  embedding (Embedding)              (None, None, 128)               1280000     
+##  lstm (LSTM)                        (None, 128)                     131584      
+##  dense (Dense)                      (None, 46)                      5934        
+## ================================================================================
+## Total params: 1417518 (5.41 MB)
+## Trainable params: 1417518 (5.41 MB)
+## Non-trainable params: 0 (0.00 Byte)
+## ________________________________________________________________________________
+## [1] &quot;Model: \&quot;sequential\&quot;\n________________________________________________________________________________\n Layer (type)                       Output Shape                    Param #     \n================================================================================\n embedding (Embedding)              (None, None, 128)               1280000     \n lstm (LSTM)                        (None, 128)                     131584      \n dense (Dense)                      (None, 46)                      5934        \n================================================================================\nTotal params: 1417518 (5.41 MB)\nTrainable params: 1417518 (5.41 MB)\nNon-trainable params: 0 (0.00 Byte)\n________________________________________________________________________________&quot;
+## Plotting training history for LSTM</code></pre>
+<p><img src="javascript://" width="672"/></p>
+<pre><code>## Evaluating performance on the test set...
+## Test accuracy for LSTM : 0.6731968</code></pre>
+<pre class="r"><code>acc_gru &lt;- evaluate_model(model_gru, history_gru, &quot;GRU&quot;)</code></pre>
+<pre><code>## ### Model Summary for GRU 
+## Model: &quot;sequential_1&quot;
+## ________________________________________________________________________________
+##  Layer (type)                       Output Shape                    Param #     
+## ================================================================================
+##  embedding_1 (Embedding)            (None, 1000, 128)               1280000     
+##  gru (GRU)                          (None, 128)                     99072       
+##  dense_1 (Dense)                    (None, 46)                      5934        
+## ================================================================================
+## Total params: 1385006 (5.28 MB)
+## Trainable params: 1385006 (5.28 MB)
+## Non-trainable params: 0 (0.00 Byte)
+## ________________________________________________________________________________
+## [1] &quot;Model: \&quot;sequential_1\&quot;\n________________________________________________________________________________\n Layer (type)                       Output Shape                    Param #     \n================================================================================\n embedding_1 (Embedding)            (None, 1000, 128)               1280000     \n gru (GRU)                          (None, 128)                     99072       \n dense_1 (Dense)                    (None, 46)                      5934        \n================================================================================\nTotal params: 1385006 (5.28 MB)\nTrainable params: 1385006 (5.28 MB)\nNon-trainable params: 0 (0.00 Byte)\n________________________________________________________________________________&quot;
+## Plotting training history for GRU</code></pre>
+<p><img src="javascript://" width="672"/></p>
+<pre><code>## Evaluating performance on the test set...
+## Test accuracy for GRU : 0.6772039</code></pre>
+<pre class="r"><code>acc_bilstm &lt;- evaluate_model(model_bilstm, history_bilstm, &quot;Bidirectional LSTM&quot;)</code></pre>
+<pre><code>## ### Model Summary for Bidirectional LSTM 
+## Model: &quot;sequential_2&quot;
+## ________________________________________________________________________________
+##  Layer (type)                       Output Shape                    Param #     
+## ================================================================================
+##  embedding_2 (Embedding)            (None, 1000, 128)               1280000     
+##  bidirectional (Bidirectional)      (None, 256)                     263168      
+##  dense_2 (Dense)                    (None, 46)                      11822       
+## ================================================================================
+## Total params: 1554990 (5.93 MB)
+## Trainable params: 1554990 (5.93 MB)
+## Non-trainable params: 0 (0.00 Byte)
+## ________________________________________________________________________________
+## [1] &quot;Model: \&quot;sequential_2\&quot;\n________________________________________________________________________________\n Layer (type)                       Output Shape                    Param #     \n================================================================================\n embedding_2 (Embedding)            (None, 1000, 128)               1280000     \n bidirectional (Bidirectional)      (None, 256)                     263168      \n dense_2 (Dense)                    (None, 46)                      11822       \n================================================================================\nTotal params: 1554990 (5.93 MB)\nTrainable params: 1554990 (5.93 MB)\nNon-trainable params: 0 (0.00 Byte)\n________________________________________________________________________________&quot;
+## Plotting training history for Bidirectional LSTM</code></pre>
+<p><img src="javascript://" width="672"/></p>
+<pre><code>## Evaluating performance on the test set...
+## Test accuracy for Bidirectional LSTM : 0.6393589</code></pre>
+<pre class="r"><code>acc_bigru &lt;- evaluate_model(model_bigru, history_bigru, &quot;Bidirectional GRU&quot;)</code></pre>
+<pre><code>## ### Model Summary for Bidirectional GRU 
+## Model: &quot;sequential_3&quot;
+## ________________________________________________________________________________
+##  Layer (type)                       Output Shape                    Param #     
+## ================================================================================
+##  embedding_3 (Embedding)            (None, 1000, 128)               1280000     
+##  bidirectional_1 (Bidirectional)    (None, 256)                     198144      
+##  dense_3 (Dense)                    (None, 46)                      11822       
+## ================================================================================
+## Total params: 1489966 (5.68 MB)
+## Trainable params: 1489966 (5.68 MB)
+## Non-trainable params: 0 (0.00 Byte)
+## ________________________________________________________________________________
+## [1] &quot;Model: \&quot;sequential_3\&quot;\n________________________________________________________________________________\n Layer (type)                       Output Shape                    Param #     \n================================================================================\n embedding_3 (Embedding)            (None, 1000, 128)               1280000     \n bidirectional_1 (Bidirectional)    (None, 256)                     198144      \n dense_3 (Dense)                    (None, 46)                      11822       \n================================================================================\nTotal params: 1489966 (5.68 MB)\nTrainable params: 1489966 (5.68 MB)\nNon-trainable params: 0 (0.00 Byte)\n________________________________________________________________________________&quot;
+## Plotting training history for Bidirectional GRU</code></pre>
+<p><img src="javascript://" width="672"/></p>
+<pre><code>## Evaluating performance on the test set...
+## Test accuracy for Bidirectional GRU : 0.6415851</code></pre>
+<pre class="r"><code>acc_conv1d &lt;- evaluate_model(model_conv1d, history_conv1d, &quot;1D ConvNet&quot;)</code></pre>
+<pre><code>## ### Model Summary for 1D ConvNet 
+## Model: &quot;sequential_4&quot;
+## ________________________________________________________________________________
+##  Layer (type)                       Output Shape                    Param #     
+## ================================================================================
+##  embedding_4 (Embedding)            (None, 1000, 128)               1280000     
+##  conv1d_1 (Conv1D)                  (None, 996, 128)                82048       
+##  max_pooling1d (MaxPooling1D)       (None, 199, 128)                0           
+##  conv1d (Conv1D)                    (None, 195, 128)                82048       
+##  global_max_pooling1d (GlobalMaxPo  (None, 128)                     0           
+##  oling1D)                                                                       
+##  dense_4 (Dense)                    (None, 46)                      5934        
+## ================================================================================
+## Total params: 1450030 (5.53 MB)
+## Trainable params: 1450030 (5.53 MB)
+## Non-trainable params: 0 (0.00 Byte)
+## ________________________________________________________________________________
+## [1] &quot;Model: \&quot;sequential_4\&quot;\n________________________________________________________________________________\n Layer (type)                       Output Shape                    Param #     \n================================================================================\n embedding_4 (Embedding)            (None, 1000, 128)               1280000     \n conv1d_1 (Conv1D)                  (None, 996, 128)                82048       \n max_pooling1d (MaxPooling1D)       (None, 199, 128)                0           \n conv1d (Conv1D)                    (None, 195, 128)                82048       \n global_max_pooling1d (GlobalMaxPo  (None, 128)                     0           \n oling1D)                                                                       \n dense_4 (Dense)                    (None, 46)                      5934        \n================================================================================\nTotal params: 1450030 (5.53 MB)\nTrainable params: 1450030 (5.53 MB)\nNon-trainable params: 0 (0.00 Byte)\n________________________________________________________________________________&quot;
+## Plotting training history for 1D ConvNet</code></pre>
+<p><img src="javascript://" width="672"/></p>
+<pre><code>## Evaluating performance on the test set...
+## Test accuracy for 1D ConvNet : 0.7693678</code></pre>
+</div>
+</div>
+<div class="section level2">
+<h2>Plot 2 history using Test set</h2>
+<div class="section level3">
+<h3>Evaluate model, model summary and plot history using Test set</h3>
+<pre class="r"><code>evaluate_model &lt;- function(model, history, model_name) {
+  cat(&quot;### Model Summary for&quot;, model_name, &quot;\n&quot;)
+  summary(model)
+  plot(history$metrics$accuracy, type = &quot;o&quot;, col = &quot;blue&quot;, ylab = &quot;Accuracy&quot;, xlab = &quot;Epoch&quot;,                        main = paste(&quot;Training History -&quot;, model_name))
+  lines(history$metrics$val_accuracy, type = &quot;o&quot;, col = &quot;red&quot;)
+  legend(&quot;bottomright&quot;, legend = c(&quot;Training Accuracy&quot;, &quot;Validation Accuracy&quot;), 
+         col = c(&quot;blue&quot;, &quot;red&quot;), lty = 1)
+ 
+  scores &lt;- model %&gt;% evaluate(x_test, y_test, verbose = 0)
+  cat(&quot;### Test accuracy for&quot;, model_name, &quot;:&quot;, scores[[&quot;accuracy&quot;]], &quot;\n&quot;)
+  
+  return(scores[[&quot;accuracy&quot;]])
+}
+
+acc_lstm &lt;- evaluate_model(model_lstm, history_lstm, &quot;LSTM&quot;)</code></pre>
+<pre><code>## ### Model Summary for LSTM 
+## Model: &quot;sequential&quot;
+## ________________________________________________________________________________
+##  Layer (type)                       Output Shape                    Param #     
+## ================================================================================
+##  embedding (Embedding)              (None, None, 128)               1280000     
+##  lstm (LSTM)                        (None, 128)                     131584      
+##  dense (Dense)                      (None, 46)                      5934        
+## ================================================================================
+## Total params: 1417518 (5.41 MB)
+## Trainable params: 1417518 (5.41 MB)
+## Non-trainable params: 0 (0.00 Byte)
+## ________________________________________________________________________________</code></pre>
+<p><img src="javascript://" width="672"/></p>
+<pre><code>## ### Test accuracy for LSTM : 0.6731968</code></pre>
+<pre class="r"><code>acc_gru &lt;- evaluate_model(model_gru, history_gru, &quot;GRU&quot;)</code></pre>
+<pre><code>## ### Model Summary for GRU 
+## Model: &quot;sequential_1&quot;
+## ________________________________________________________________________________
+##  Layer (type)                       Output Shape                    Param #     
+## ================================================================================
+##  embedding_1 (Embedding)            (None, 1000, 128)               1280000     
+##  gru (GRU)                          (None, 128)                     99072       
+##  dense_1 (Dense)                    (None, 46)                      5934        
+## ================================================================================
+## Total params: 1385006 (5.28 MB)
+## Trainable params: 1385006 (5.28 MB)
+## Non-trainable params: 0 (0.00 Byte)
+## ________________________________________________________________________________</code></pre>
+<p><img src="javascript://" width="672"/></p>
+<pre><code>## ### Test accuracy for GRU : 0.6772039</code></pre>
+<pre class="r"><code>acc_bilstm &lt;- evaluate_model(model_bilstm, history_bilstm, &quot;Bidirectional LSTM&quot;)</code></pre>
+<pre><code>## ### Model Summary for Bidirectional LSTM 
+## Model: &quot;sequential_2&quot;
+## ________________________________________________________________________________
+##  Layer (type)                       Output Shape                    Param #     
+## ================================================================================
+##  embedding_2 (Embedding)            (None, 1000, 128)               1280000     
+##  bidirectional (Bidirectional)      (None, 256)                     263168      
+##  dense_2 (Dense)                    (None, 46)                      11822       
+## ================================================================================
+## Total params: 1554990 (5.93 MB)
+## Trainable params: 1554990 (5.93 MB)
+## Non-trainable params: 0 (0.00 Byte)
+## ________________________________________________________________________________</code></pre>
+<p><img src="javascript://" width="672"/></p>
+<pre><code>## ### Test accuracy for Bidirectional LSTM : 0.6393589</code></pre>
+<pre class="r"><code>acc_bigru &lt;- evaluate_model(model_bigru, history_bigru, &quot;Bidirectional GRU&quot;)</code></pre>
+<pre><code>## ### Model Summary for Bidirectional GRU 
+## Model: &quot;sequential_3&quot;
+## ________________________________________________________________________________
+##  Layer (type)                       Output Shape                    Param #     
+## ================================================================================
+##  embedding_3 (Embedding)            (None, 1000, 128)               1280000     
+##  bidirectional_1 (Bidirectional)    (None, 256)                     198144      
+##  dense_3 (Dense)                    (None, 46)                      11822       
+## ================================================================================
+## Total params: 1489966 (5.68 MB)
+## Trainable params: 1489966 (5.68 MB)
+## Non-trainable params: 0 (0.00 Byte)
+## ________________________________________________________________________________</code></pre>
+<p><img src="javascript://" width="672"/></p>
+<pre><code>## ### Test accuracy for Bidirectional GRU : 0.6415851</code></pre>
+<pre class="r"><code>acc_conv1d &lt;- evaluate_model(model_conv1d, history_conv1d, &quot;1D ConvNet&quot;)</code></pre>
+<pre><code>## ### Model Summary for 1D ConvNet 
+## Model: &quot;sequential_4&quot;
+## ________________________________________________________________________________
+##  Layer (type)                       Output Shape                    Param #     
+## ================================================================================
+##  embedding_4 (Embedding)            (None, 1000, 128)               1280000     
+##  conv1d_1 (Conv1D)                  (None, 996, 128)                82048       
+##  max_pooling1d (MaxPooling1D)       (None, 199, 128)                0           
+##  conv1d (Conv1D)                    (None, 195, 128)                82048       
+##  global_max_pooling1d (GlobalMaxPo  (None, 128)                     0           
+##  oling1D)                                                                       
+##  dense_4 (Dense)                    (None, 46)                      5934        
+## ================================================================================
+## Total params: 1450030 (5.53 MB)
+## Trainable params: 1450030 (5.53 MB)
+## Non-trainable params: 0 (0.00 Byte)
+## ________________________________________________________________________________</code></pre>
+<p><img src="javascript://" width="672"/></p>
+<pre><code>## ### Test accuracy for 1D ConvNet : 0.7693678</code></pre>
+</div>
+</div>
+<div class="section level2">
+<h2>Plot 3 history using ggplot2</h2>
+<div class="section level3">
+<h3>Evaluate model, model summary and plot history using Test set</h3>
+<pre class="r"><code>evaluate_model &lt;- function(model, history, model_name) {
+  cat(&quot;### Model Summary for&quot;, model_name, &quot;\n&quot;)
+  summary(model)
+  
+  history_df &lt;- data.frame(
+    epoch = 1:length(history$metrics$accuracy),
+    accuracy = history$metrics$accuracy,
+    val_accuracy = history$metrics$val_accuracy
+  )
+  p &lt;- ggplot(history_df, aes(x = epoch)) +
+    geom_line(aes(y = accuracy, color = &quot;Training Accuracy&quot;), size = 1.2) +
+    geom_point(aes(y = accuracy, color = &quot;Training Accuracy&quot;), shape = 16, size = 2) +
+    geom_line(aes(y = val_accuracy, color = &quot;Validation Accuracy&quot;), size = 1.2) +
+    geom_point(aes(y = val_accuracy, color = &quot;Validation Accuracy&quot;), shape = 16, size = 2) +
+    labs(title = paste(&quot;Training History -&quot;, model_name),
+         x = &quot;Epoch&quot;, y = &quot;Accuracy&quot;) +
+    theme_minimal() +
+    scale_color_manual(values = c(&quot;Training Accuracy&quot; = &quot;#FFC107&quot;, &quot;Validation Accuracy&quot; = &quot;#03A9F4&quot;)) +
+    theme(legend.position = &quot;bottom&quot;, legend.title = element_blank(),
+          plot.title = element_text(size = 15, face = &quot;bold&quot;),
+          axis.title = element_text(size = 12, face = &quot;bold&quot;),
+          axis.text = element_text(size = 10))
+  
+  print(p)
+  scores &lt;- model %&gt;% evaluate(x_test, y_test, verbose = 0)
+  cat(&quot;### Test accuracy for&quot;, model_name, &quot;:&quot;, scores[[&quot;accuracy&quot;]], &quot;\n&quot;)
+  
+  return(scores[[&quot;accuracy&quot;]])
+}
+
+acc_lstm &lt;- evaluate_model(model_lstm, history_lstm, &quot;LSTM&quot;)</code></pre>
+<pre><code>## ### Model Summary for LSTM 
+## Model: &quot;sequential&quot;
+## ________________________________________________________________________________
+##  Layer (type)                       Output Shape                    Param #     
+## ================================================================================
+##  embedding (Embedding)              (None, None, 128)               1280000     
+##  lstm (LSTM)                        (None, 128)                     131584      
+##  dense (Dense)                      (None, 46)                      5934        
+## ================================================================================
+## Total params: 1417518 (5.41 MB)
+## Trainable params: 1417518 (5.41 MB)
+## Non-trainable params: 0 (0.00 Byte)
+## ________________________________________________________________________________</code></pre>
+<pre><code>## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+## ℹ Please use `linewidth` instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<p><img src="javascript://" width="672"/></p>
+<pre><code>## ### Test accuracy for LSTM : 0.6731968</code></pre>
+<pre class="r"><code>acc_gru &lt;- evaluate_model(model_gru, history_gru, &quot;GRU&quot;)</code></pre>
+<pre><code>## ### Model Summary for GRU 
+## Model: &quot;sequential_1&quot;
+## ________________________________________________________________________________
+##  Layer (type)                       Output Shape                    Param #     
+## ================================================================================
+##  embedding_1 (Embedding)            (None, 1000, 128)               1280000     
+##  gru (GRU)                          (None, 128)                     99072       
+##  dense_1 (Dense)                    (None, 46)                      5934        
+## ================================================================================
+## Total params: 1385006 (5.28 MB)
+## Trainable params: 1385006 (5.28 MB)
+## Non-trainable params: 0 (0.00 Byte)
+## ________________________________________________________________________________</code></pre>
+<p><img src="javascript://" width="672"/></p>
+<pre><code>## ### Test accuracy for GRU : 0.6772039</code></pre>
+<pre class="r"><code>acc_bilstm &lt;- evaluate_model(model_bilstm, history_bilstm, &quot;Bidirectional LSTM&quot;)</code></pre>
+<pre><code>## ### Model Summary for Bidirectional LSTM 
+## Model: &quot;sequential_2&quot;
+## ________________________________________________________________________________
+##  Layer (type)                       Output Shape                    Param #     
+## ================================================================================
+##  embedding_2 (Embedding)            (None, 1000, 128)               1280000     
+##  bidirectional (Bidirectional)      (None, 256)                     263168      
+##  dense_2 (Dense)                    (None, 46)                      11822       
+## ================================================================================
+## Total params: 1554990 (5.93 MB)
+## Trainable params: 1554990 (5.93 MB)
+## Non-trainable params: 0 (0.00 Byte)
+## ________________________________________________________________________________</code></pre>
+<p><img src="javascript://" width="672"/></p>
+<pre><code>## ### Test accuracy for Bidirectional LSTM : 0.6393589</code></pre>
+<pre class="r"><code>acc_bigru &lt;- evaluate_model(model_bigru, history_bigru, &quot;Bidirectional GRU&quot;)</code></pre>
+<pre><code>## ### Model Summary for Bidirectional GRU 
+## Model: &quot;sequential_3&quot;
+## ________________________________________________________________________________
+##  Layer (type)                       Output Shape                    Param #     
+## ================================================================================
+##  embedding_3 (Embedding)            (None, 1000, 128)               1280000     
+##  bidirectional_1 (Bidirectional)    (None, 256)                     198144      
+##  dense_3 (Dense)                    (None, 46)                      11822       
+## ================================================================================
+## Total params: 1489966 (5.68 MB)
+## Trainable params: 1489966 (5.68 MB)
+## Non-trainable params: 0 (0.00 Byte)
+## ________________________________________________________________________________</code></pre>
+<p><img src="javascript://" width="672"/></p>
+<pre><code>## ### Test accuracy for Bidirectional GRU : 0.6415851</code></pre>
+<pre class="r"><code>acc_conv1d &lt;- evaluate_model(model_conv1d, history_conv1d, &quot;1D ConvNet&quot;)</code></pre>
+<pre><code>## ### Model Summary for 1D ConvNet 
+## Model: &quot;sequential_4&quot;
+## ________________________________________________________________________________
+##  Layer (type)                       Output Shape                    Param #     
+## ================================================================================
+##  embedding_4 (Embedding)            (None, 1000, 128)               1280000     
+##  conv1d_1 (Conv1D)                  (None, 996, 128)                82048       
+##  max_pooling1d (MaxPooling1D)       (None, 199, 128)                0           
+##  conv1d (Conv1D)                    (None, 195, 128)                82048       
+##  global_max_pooling1d (GlobalMaxPo  (None, 128)                     0           
+##  oling1D)                                                                       
+##  dense_4 (Dense)                    (None, 46)                      5934        
+## ================================================================================
+## Total params: 1450030 (5.53 MB)
+## Trainable params: 1450030 (5.53 MB)
+## Non-trainable params: 0 (0.00 Byte)
+## ________________________________________________________________________________</code></pre>
+<p><img src="javascript://" width="672"/></p>
+<pre><code>## ### Test accuracy for 1D ConvNet : 0.7693678</code></pre>
+</div>
+</div>
+<div class="section level2">
+<h2>Evalautae performance of different models</h2>
+<pre class="r"><code>model_performance &lt;- data.frame(
+  model_name = c(&quot;LSTM&quot;, &quot;GRU&quot;, &quot;Bidirectional LSTM&quot;, &quot;Bidirectional GRU&quot;, &quot;1D ConvNet&quot;),
+  accuracy = c(acc_lstm, acc_gru, acc_bilstm, acc_bigru, acc_conv1d)
+)
+
+kable(model_performance, caption = &quot;Model Performance Metrics&quot;) %&gt;%
+  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;), 
+                full_width = TRUE) %&gt;%
+  column_spec(1, bold = TRUE, color = &quot;#9C27B0&quot;, background = &quot;#4CAF50&quot;) %&gt;%
+  column_spec(2, color = &quot;#f44336&quot;,bold = TRUE) %&gt;%
+  row_spec(0, bold = TRUE, font_size = 14, background = &quot;#2196F3&quot;, color = &quot;black&quot;) %&gt;%
+  row_spec(1:5, background = &quot;lightpink&quot;, font_size = 12, italic = TRUE) %&gt;%
+  add_header_above(c(&quot;Performance Metrics&quot; = 2), background = &quot;#8BC34A&quot;, 
+                   color = &quot;black&quot;, bold = TRUE)</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="margin-left: auto;margin-right: auto;">
+<caption>
+Model Performance Metrics
+</caption>
+<thead>
+<tr>
+<th style="border-bottom:hidden;padding-bottom:0;padding-left:3px;padding-right:3px;text-align: center;font-weight: bold;color: black !important;padding-right: 4px;padding-left: 4px;background-color: rgba(139, 195, 74, 255) !important;" colspan="2">
+<div style="border-bottom: 1px solid #ddd;padding-bottom: 5px;">
+Performance Metrics
+</div>
+</th>
+</tr>
+<tr>
+<th style="text-align:left;font-weight: bold;color: black !important;background-color: rgba(33, 150, 243, 255) !important;font-size: 14px;">
+model_name
+</th>
+<th style="text-align:right;font-weight: bold;color: black !important;background-color: rgba(33, 150, 243, 255) !important;font-size: 14px;">
+accuracy
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(156, 39, 176, 255) !important;background-color: rgba(76, 175, 80, 255) !important;font-style: italic;background-color: lightpink !important;font-size: 12px;">
+LSTM
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(244, 67, 54, 255) !important;font-style: italic;background-color: lightpink !important;font-size: 12px;">
+0.6731968
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(156, 39, 176, 255) !important;background-color: rgba(76, 175, 80, 255) !important;font-style: italic;background-color: lightpink !important;font-size: 12px;">
+GRU
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(244, 67, 54, 255) !important;font-style: italic;background-color: lightpink !important;font-size: 12px;">
+0.6772039
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(156, 39, 176, 255) !important;background-color: rgba(76, 175, 80, 255) !important;font-style: italic;background-color: lightpink !important;font-size: 12px;">
+Bidirectional LSTM
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(244, 67, 54, 255) !important;font-style: italic;background-color: lightpink !important;font-size: 12px;">
+0.6393589
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(156, 39, 176, 255) !important;background-color: rgba(76, 175, 80, 255) !important;font-style: italic;background-color: lightpink !important;font-size: 12px;">
+Bidirectional GRU
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(244, 67, 54, 255) !important;font-style: italic;background-color: lightpink !important;font-size: 12px;">
+0.6415851
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(156, 39, 176, 255) !important;background-color: rgba(76, 175, 80, 255) !important;font-style: italic;background-color: lightpink !important;font-size: 12px;">
+1D ConvNet
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(244, 67, 54, 255) !important;font-style: italic;background-color: lightpink !important;font-size: 12px;">
+0.7693678
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2>Summarize the performance of different models in the test set using
+a table.</h2>
+<pre class="r"><code>predictions_list &lt;- list()
+
+predictions_list[[&quot;LSTM&quot;]] &lt;- model_lstm %&gt;% predict(x_test)</code></pre>
+<pre><code>## 71/71 - 12s - 12s/epoch - 174ms/step</code></pre>
+<pre class="r"><code>predictions_list[[&quot;GRU&quot;]] &lt;- model_gru %&gt;% predict(x_test)</code></pre>
+<pre><code>## 71/71 - 10s - 10s/epoch - 137ms/step</code></pre>
+<pre class="r"><code>predictions_list[[&quot;Bidirectional LSTM&quot;]] &lt;- model_bilstm %&gt;% predict(x_test)</code></pre>
+<pre><code>## 71/71 - 13s - 13s/epoch - 183ms/step</code></pre>
+<pre class="r"><code>predictions_list[[&quot;Bidirectional GRU&quot;]] &lt;- model_bigru %&gt;% predict(x_test)</code></pre>
+<pre><code>## 71/71 - 10s - 10s/epoch - 147ms/step</code></pre>
+<pre class="r"><code>predictions_list[[&quot;1D ConvNet&quot;]] &lt;- model_conv1d %&gt;% predict(x_test)</code></pre>
+<pre><code>## 71/71 - 2s - 2s/epoch - 27ms/step</code></pre>
+<pre class="r"><code>true_labels &lt;- max.col(y_test) - 1
+performance_summary &lt;- list()
+topics &lt;- 0:45
+for (model_name in names(predictions_list)) {
+  predictions &lt;- max.col(predictions_list[[model_name]]) - 1
+  acc &lt;- mean(predictions == true_labels)
+  topic_accuracies &lt;- data.frame(topic_id = integer(), acc = double())
+  for (topic_id in topics) {
+    topic_indices &lt;- which(true_labels == topic_id)
+    
+    if (length(topic_indices) &gt; 0) {
+      topic_predictions &lt;- predictions[topic_indices]
+      topic_true_labels &lt;- true_labels[topic_indices]
+      topic_acc &lt;- mean(topic_predictions == topic_true_labels)
+      topic_accuracies &lt;- rbind(topic_accuracies, data.frame(topic_id = topic_id, acc = topic_acc))
+    } else {
+      topic_accuracies &lt;- rbind(topic_accuracies, data.frame(topic_id = topic_id, acc = NA))
+    }
+  }
+  topic_accuracies &lt;- na.omit(topic_accuracies)
+  best_topic &lt;- topic_accuracies[which.max(topic_accuracies$acc), ]
+  worst_topic &lt;- topic_accuracies[which.min(topic_accuracies$acc), ]
+  if (is.na(worst_topic$acc) || worst_topic$acc == 0) {
+    worst_topic &lt;- topic_accuracies %&gt;% filter(!is.na(acc) &amp; acc != 0) %&gt;% slice(which.min(acc))
+  }
+  model_summary &lt;- data.frame(
+    model_name = model_name,
+    acc = acc,
+    best_topic_id = best_topic$topic_id,
+    acc_in_best_topic_id = best_topic$acc,
+    worst_topic_id = worst_topic$topic_id,
+    acc_in_worst_topic_id = worst_topic$acc
+  )
+  performance_summary &lt;- append(performance_summary, list(model_summary))
+}
+performance_df &lt;- do.call(rbind, performance_summary)</code></pre>
+<p><strong>Model Performance Summary</strong></p>
+<pre class="r"><code>kable(performance_df, caption = &quot;Model Performance Summary&quot;) %&gt;% 
+  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;, &quot;bordered&quot;), full_width = TRUE) %&gt;% 
+  row_spec(0, bold = TRUE, color = &quot;white&quot;, background = &quot;#4CAF50&quot;) %&gt;%  # Header row
+  row_spec(1, color = &quot;white&quot;, background = &quot;#FFC107&quot;) %&gt;%  # First row
+  row_spec(2, color = &quot;white&quot;, background = &quot;#FF5722&quot;) %&gt;%  # Second row
+  row_spec(3, color = &quot;white&quot;, background = &quot;#03A9F4&quot;) %&gt;%  # Third row
+  row_spec(4, color = &quot;white&quot;, background = &quot;pink&quot;) %&gt;%  # Fourth row
+  row_spec(5, color = &quot;white&quot;, background = &quot;#E91E63&quot;) %&gt;%  # Fifth row
+  column_spec(1, bold = TRUE, color = &quot;blue&quot;) %&gt;% 
+  column_spec(2:6, bold = TRUE,color = &quot;darkred&quot;)</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive table-bordered" style="margin-left: auto;margin-right: auto;">
+<caption>
+Model Performance Summary
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+model_name
+</th>
+<th style="text-align:right;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+acc
+</th>
+<th style="text-align:right;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+best_topic_id
+</th>
+<th style="text-align:right;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+acc_in_best_topic_id
+</th>
+<th style="text-align:right;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+worst_topic_id
+</th>
+<th style="text-align:right;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+acc_in_worst_topic_id
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;color: white !important;background-color: rgba(255, 193, 7, 255) !important;font-weight: bold;color: blue !important;">
+LSTM
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(255, 193, 7, 255) !important;font-weight: bold;color: darkred !important;">
+0.6731968
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(255, 193, 7, 255) !important;font-weight: bold;color: darkred !important;">
+3
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(255, 193, 7, 255) !important;font-weight: bold;color: darkred !important;">
+0.9348093
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(255, 193, 7, 255) !important;font-weight: bold;color: darkred !important;">
+18
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(255, 193, 7, 255) !important;font-weight: bold;color: darkred !important;">
+0.0500000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;color: white !important;background-color: rgba(255, 87, 34, 255) !important;font-weight: bold;color: blue !important;">
+GRU
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(255, 87, 34, 255) !important;font-weight: bold;color: darkred !important;">
+0.6772039
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(255, 87, 34, 255) !important;font-weight: bold;color: darkred !important;">
+10
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(255, 87, 34, 255) !important;font-weight: bold;color: darkred !important;">
+0.9000000
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(255, 87, 34, 255) !important;font-weight: bold;color: darkred !important;">
+32
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(255, 87, 34, 255) !important;font-weight: bold;color: darkred !important;">
+0.1000000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;color: white !important;background-color: rgba(3, 169, 244, 255) !important;font-weight: bold;color: blue !important;">
+Bidirectional LSTM
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(3, 169, 244, 255) !important;font-weight: bold;color: darkred !important;">
+0.6393589
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(3, 169, 244, 255) !important;font-weight: bold;color: darkred !important;">
+3
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(3, 169, 244, 255) !important;font-weight: bold;color: darkred !important;">
+0.8757688
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(3, 169, 244, 255) !important;font-weight: bold;color: darkred !important;">
+12
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(3, 169, 244, 255) !important;font-weight: bold;color: darkred !important;">
+0.0769231
+</td>
+</tr>
+<tr>
+<td style="text-align:left;color: white !important;background-color: pink !important;font-weight: bold;color: blue !important;">
+Bidirectional GRU
+</td>
+<td style="text-align:right;color: white !important;background-color: pink !important;font-weight: bold;color: darkred !important;">
+0.6415850
+</td>
+<td style="text-align:right;color: white !important;background-color: pink !important;font-weight: bold;color: darkred !important;">
+3
+</td>
+<td style="text-align:right;color: white !important;background-color: pink !important;font-weight: bold;color: darkred !important;">
+0.9372694
+</td>
+<td style="text-align:right;color: white !important;background-color: pink !important;font-weight: bold;color: darkred !important;">
+24
+</td>
+<td style="text-align:right;color: white !important;background-color: pink !important;font-weight: bold;color: darkred !important;">
+0.0526316
+</td>
+</tr>
+<tr>
+<td style="text-align:left;color: white !important;background-color: rgba(233, 30, 99, 255) !important;font-weight: bold;color: blue !important;">
+1D ConvNet
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(233, 30, 99, 255) !important;font-weight: bold;color: darkred !important;">
+0.7693678
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(233, 30, 99, 255) !important;font-weight: bold;color: darkred !important;">
+45
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(233, 30, 99, 255) !important;font-weight: bold;color: darkred !important;">
+1.0000000
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(233, 30, 99, 255) !important;font-weight: bold;color: darkred !important;">
+15
+</td>
+<td style="text-align:right;color: white !important;background-color: rgba(233, 30, 99, 255) !important;font-weight: bold;color: darkred !important;">
+0.1111111
+</td>
+</tr>
+</tbody>
+</table>
+<div class="section level3">
+<h3>Findings From the above table</h3>
+<div class="section level4">
+<h4>Model Performance Summary</h4>
+<ol style="list-style-type: decimal;">
+<li><p><strong>Overall Accuracy</strong>:</p>
+<ul>
+<li><strong>1D ConvNet</strong>: Stands out with the highest overall
+accuracy at <strong>0.7693678</strong>.</li>
+<li><strong>GRU</strong>: The second highest overall accuracy at
+<strong>0.6772039</strong>.</li>
+<li><strong>LSTM</strong>: Close to GRU with an overall accuracy of
+<strong>0.6731968</strong>.</li>
+<li><strong>Bidirectional GRU</strong> and <strong>Bidirectional
+LSTM</strong>: Both show relatively lower accuracies at
+<strong>0.6415850</strong> and <strong>0.6393589</strong>,
+respectively.</li>
+</ul></li>
+<li><p><strong>Best Topic Performance</strong>:</p>
+<ul>
+<li><strong>1D ConvNet</strong>: Excels with a perfect accuracy of
+<strong>1.0000000</strong> on topic ID <strong>45</strong>.</li>
+<li><strong>LSTM</strong>: Achieves <strong>0.9348093</strong> on topic
+ID <strong>3</strong>.</li>
+<li><strong>Bidirectional GRU</strong>: Shows strong performance with
+<strong>0.9372694</strong> on topic ID <strong>3</strong>.</li>
+<li><strong>GRU</strong>: Records <strong>0.9000000</strong> on topic ID
+<strong>10</strong>.</li>
+<li><strong>Bidirectional LSTM</strong>: Has an accuracy of
+<strong>0.8757688</strong> on topic ID <strong>3</strong>.</li>
+</ul></li>
+<li><p><strong>Worst Topic Performance</strong>:</p>
+<ul>
+<li><strong>1D ConvNet</strong>: Lowest accuracy on topic ID
+<strong>15</strong> at <strong>0.1111111</strong>.</li>
+<li><strong>GRU</strong>: Performs poorly on topic ID
+<strong>32</strong> with an accuracy of <strong>0.1000000</strong>.</li>
+<li><strong>LSTM</strong>: Has the lowest performance on topic ID
+<strong>18</strong> at <strong>0.0500000</strong>.</li>
+<li><strong>Bidirectional GRU</strong>: Shows low performance on topic
+ID <strong>24</strong> with <strong>0.0526316</strong>.</li>
+<li><strong>Bidirectional LSTM</strong>: Also shows poor performance on
+topic ID <strong>12</strong> at <strong>0.0769231</strong>.</li>
+</ul></li>
+</ol>
+</div>
+<div class="section level4">
+<h4>Insights:</h4>
+<ul>
+<li><strong>1D ConvNet</strong> demonstrates superior overall
+performance and excellent specific topic performance. However, it also
+exhibits a significant drop in accuracy on its worst-performing
+topic.</li>
+<li><strong>LSTM</strong> and <strong>GRU</strong> have comparable
+overall performances, with GRU slightly ahead. Both models show
+significant variance between their best and worst topic
+performances.</li>
+<li><strong>Bidirectional LSTM</strong> and <strong>Bidirectional
+GRU</strong> appear to be less effective compared to their
+unidirectional counterparts, both in overall accuracy and topic-specific
+performance.</li>
+</ul>
+<p><strong>Overall</strong>, the <strong>1D ConvNet</strong> seems to be
+the <strong>most reliable model</strong> in this setup, though every
+model shows some variability in performance across different topics.</p>
+</div>
+</div>
+</div>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script type="module" src="https://s.brightspace.com/lib/bsi/2024.11.269/unbundled/mathjax.js"></script><script type="text/javascript">document.addEventListener('DOMContentLoaded', function() {
+						if (document.querySelector('math') || /\$\$|\\\(|\\\[|\\begin{|\\ref{|\\eqref{/.test(document.body.innerHTML)) {
+							document.querySelectorAll('mspace[linebreak="newline"]').forEach(elm => {
+								elm.setAttribute('style', 'display: block; height: 0.5rem;');
+							});
+
+							window.D2L.MathJax.loadMathJax({
+								outputScale: 1.5,
+								renderLatex: false,
+								enableMML3Support: false
+							});
+						}
+					});</script><script type="module" src="https://s.brightspace.com/lib/bsi/2024.11.269/unbundled/prism.js"></script><script type="text/javascript">document.addEventListener('DOMContentLoaded', function() {
+					document.querySelectorAll('.d2l-code').forEach(code => {
+						window.D2L.Prism.formatCodeElement(code);
+					});
+				});</script><script type="module" src="https://s.brightspace.com/lib/bsi/2024.11.269/unbundled/embeds.js"></script><script type="text/javascript">document.addEventListener('DOMContentLoaded', function() {
+					window.D2L.EmbedRenderer.renderEmbeds(document.body);
+				});</script></body></html>

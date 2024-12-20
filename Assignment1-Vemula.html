@@ -1,0 +1,1764 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html><head></head><body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div>
+
+
+
+<h1 class="title toc-ignore">Assignment 1 : Hazardous Waste
+Landfilled</h1>
+<h4 class="author">Divya Vemula</h4>
+<h4 class="date">2024-10-17</h4>
+
+</div>
+
+
+<div class="section level2">
+<h2>Overview</h2>
+<p>The dataset comprises annual data on hazardous waste landfilled,
+measured in metric tons, sourced from various entities. It identifies
+the country or region, facilitating trend analysis and enabling
+comparisons of hazardous waste disposal practices across different
+locations.</p>
+</div>
+<div class="section level2">
+<h2>Dataset Information</h2>
+<ul>
+<li><strong>Dataset URL</strong>:(<a rel="noopener" href="https://data.un.org/Data.aspx?d=ENV&amp;f=variableID%3a1841" class="uri">https://data.un.org/Data.aspx?d=ENV&amp;f=variableID%3a1841</a>)</li>
+<li><strong>Source</strong>: Environment Statistics Database(UNSD) |
+Wsate | Hazardous Waste Landfilled</li>
+<li><strong>Variables Included</strong>:
+<ul>
+<li><strong>Country or Area</strong>: Name of the country or region</li>
+<li><strong>Year</strong>: The year of the observation</li>
+<li><strong>Value</strong>: Quantity of hazardous waste landfilled</li>
+<li><strong>Unit</strong>: Measurement unit for the “Value”</li>
+</ul></li>
+</ul>
+</div>
+<div class="section level2">
+<h2>Reading, Cleaning and Preprocessing the Data</h2>
+<p><strong>Load required Dependencies</strong></p>
+<pre class="r"><code>if (!require(&#39;tidyverse&#39;)) install.packages(&#39;tidyverse&#39;); library(&#39;tidyverse&#39;)
+if (!require(&#39;tidyr&#39;)) install.packages(&#39;tidyr&#39;); library(&#39;tidyr&#39;)
+if (!require(&#39;kableExtra&#39;)) install.packages(&#39;kableExtra&#39;); library(&#39;kableExtra&#39;)
+if (!require(&#39;RColorBrewer&#39;)) install.packages(&#39;RColorBrewer&#39;); library(&#39;RColorBrewer&#39;)
+if (!require(&#39;ggplot2&#39;)) install.packages(&#39;ggplot2&#39;); library(&#39;ggplot2&#39;)
+if (!require(&#39;ggthemes&#39;)) install.packages(&#39;ggthemes&#39;); library(&#39;ggthemes&#39;)</code></pre>
+<p><strong>Load the dataset</strong></p>
+<p>check <strong>if file exits</strong> in the directory</p>
+<pre class="r"><code>file.exists(&quot;Assignment1-Vemula.csv&quot;)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p><strong>Load the data</strong></p>
+<pre class="r"><code>df &lt;- read_csv(file=&quot;Assignment1-Vemula.csv&quot;, show_col_types = FALSE)
+colnames(df)</code></pre>
+<pre><code>## [1] &quot;Country or Area&quot; &quot;Year&quot;            &quot;Value&quot;           &quot;Value Footnotes&quot;
+## [5] &quot;Unit&quot;</code></pre>
+<p><strong>Analyse the structure of the dataset</strong></p>
+<pre class="r"><code>kbl(tail(df,n=12), caption = &quot;Environmental Data Summary&quot;) %&gt;%
+  kable_styling(
+    bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;),
+    full_width = FALSE,
+    position = &quot;center&quot;,
+    font_size = 14
+  ) %&gt;%
+  column_spec(1, bold = TRUE, color = &quot;blue&quot;) %&gt;%
+  column_spec(2, italic = TRUE, color = &quot;darkgreen&quot;) %&gt;%
+  column_spec(3, bold = TRUE, color = &quot;red&quot;) %&gt;%
+  column_spec(4, background = &quot;#F5F5F5&quot;, color = &quot;purple&quot;) %&gt;%
+  column_spec(5, bold = TRUE, color = &quot;orange&quot;)</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="font-size: 14px;width: auto !important;margin-left: auto;margin-right: auto;">
+<caption style="font-size: initial !important;">
+Environmental Data Summary
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Country or Area
+</th>
+<th style="text-align:right;">
+Year
+</th>
+<th style="text-align:right;">
+Value
+</th>
+<th style="text-align:right;">
+Value Footnotes
+</th>
+<th style="text-align:left;">
+Unit
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;">
+United Arab Emirates
+</td>
+<td style="text-align:right;font-style: italic;color: darkgreen !important;">
+2012
+</td>
+<td style="text-align:right;font-weight: bold;color: red !important;">
+167075.2
+</td>
+<td style="text-align:right;color: purple !important;background-color: rgba(245, 245, 245, 255) !important;">
+NA
+</td>
+<td style="text-align:left;font-weight: bold;color: orange !important;">
+tonnes
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;">
+United Arab Emirates
+</td>
+<td style="text-align:right;font-style: italic;color: darkgreen !important;">
+2011
+</td>
+<td style="text-align:right;font-weight: bold;color: red !important;">
+51697.0
+</td>
+<td style="text-align:right;color: purple !important;background-color: rgba(245, 245, 245, 255) !important;">
+NA
+</td>
+<td style="text-align:left;font-weight: bold;color: orange !important;">
+tonnes
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;">
+United Arab Emirates
+</td>
+<td style="text-align:right;font-style: italic;color: darkgreen !important;">
+2010
+</td>
+<td style="text-align:right;font-weight: bold;color: red !important;">
+144835.4
+</td>
+<td style="text-align:right;color: purple !important;background-color: rgba(245, 245, 245, 255) !important;">
+NA
+</td>
+<td style="text-align:left;font-weight: bold;color: orange !important;">
+tonnes
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:right;font-style: italic;color: darkgreen !important;">
+2016
+</td>
+<td style="text-align:right;font-weight: bold;color: red !important;">
+844535.0
+</td>
+<td style="text-align:right;color: purple !important;background-color: rgba(245, 245, 245, 255) !important;">
+NA
+</td>
+<td style="text-align:left;font-weight: bold;color: orange !important;">
+tonnes
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:right;font-style: italic;color: darkgreen !important;">
+2014
+</td>
+<td style="text-align:right;font-weight: bold;color: red !important;">
+869206.0
+</td>
+<td style="text-align:right;color: purple !important;background-color: rgba(245, 245, 245, 255) !important;">
+NA
+</td>
+<td style="text-align:left;font-weight: bold;color: orange !important;">
+tonnes
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:right;font-style: italic;color: darkgreen !important;">
+2012
+</td>
+<td style="text-align:right;font-weight: bold;color: red !important;">
+1034935.0
+</td>
+<td style="text-align:right;color: purple !important;background-color: rgba(245, 245, 245, 255) !important;">
+NA
+</td>
+<td style="text-align:left;font-weight: bold;color: orange !important;">
+tonnes
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:right;font-style: italic;color: darkgreen !important;">
+2010
+</td>
+<td style="text-align:right;font-weight: bold;color: red !important;">
+1296855.0
+</td>
+<td style="text-align:right;color: purple !important;background-color: rgba(245, 245, 245, 255) !important;">
+NA
+</td>
+<td style="text-align:left;font-weight: bold;color: orange !important;">
+tonnes
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:right;font-style: italic;color: darkgreen !important;">
+2008
+</td>
+<td style="text-align:right;font-weight: bold;color: red !important;">
+1270785.0
+</td>
+<td style="text-align:right;color: purple !important;background-color: rgba(245, 245, 245, 255) !important;">
+NA
+</td>
+<td style="text-align:left;font-weight: bold;color: orange !important;">
+tonnes
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:right;font-style: italic;color: darkgreen !important;">
+2006
+</td>
+<td style="text-align:right;font-weight: bold;color: red !important;">
+1509306.0
+</td>
+<td style="text-align:right;color: purple !important;background-color: rgba(245, 245, 245, 255) !important;">
+NA
+</td>
+<td style="text-align:left;font-weight: bold;color: orange !important;">
+tonnes
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:right;font-style: italic;color: darkgreen !important;">
+2004
+</td>
+<td style="text-align:right;font-weight: bold;color: red !important;">
+3003692.0
+</td>
+<td style="text-align:right;color: purple !important;background-color: rgba(245, 245, 245, 255) !important;">
+NA
+</td>
+<td style="text-align:left;font-weight: bold;color: orange !important;">
+tonnes
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;">
+Zambia
+</td>
+<td style="text-align:right;font-style: italic;color: darkgreen !important;">
+2005
+</td>
+<td style="text-align:right;font-weight: bold;color: red !important;">
+0.0
+</td>
+<td style="text-align:right;color: purple !important;background-color: rgba(245, 245, 245, 255) !important;">
+NA
+</td>
+<td style="text-align:left;font-weight: bold;color: orange !important;">
+tonnes
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: blue !important;">
+Zambia
+</td>
+<td style="text-align:right;font-style: italic;color: darkgreen !important;">
+2000
+</td>
+<td style="text-align:right;font-weight: bold;color: red !important;">
+0.0
+</td>
+<td style="text-align:right;color: purple !important;background-color: rgba(245, 245, 245, 255) !important;">
+NA
+</td>
+<td style="text-align:left;font-weight: bold;color: orange !important;">
+tonnes
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Handling unwanted columns, Transform the variables names and
+display the Data table</strong></p>
+<p><strong>Note</strong> Removing the Value Footnotes, and the Unit
+columns which has no significance</p>
+<pre class="r"><code>df_environment &lt;- df |&gt; select(-contains(&quot;Footnote&quot;)) |&gt; 
+  select(-contains(&quot;Unit&quot;))
+
+colnames(df_environment)=c(&quot;Country_or_Area&quot;,&quot;Year&quot;,&quot;Value&quot;)
+
+kbl(tail(df_environment,n=12)) |&gt;
+  kable_styling(
+    bootstrap_options = c(&quot;bordered&quot;, &quot;hover&quot;, &quot;striped&quot;, &quot;responsive&quot;),
+    full_width = TRUE,
+    font_size = 14,
+    position = &quot;center&quot;
+  ) |&gt;
+  column_spec(1, bold = TRUE, border_right = TRUE, background = &quot;#D6EAF8&quot;) |&gt;
+  column_spec(2, italic = TRUE, border_right = TRUE, background = &quot;#D4EFDF&quot;) |&gt;
+  column_spec(3, color = &quot;#2E4053&quot;, background = &quot;#F9E79F&quot;) |&gt;
+  
+  row_spec(0, bold = TRUE, font_size = 16, 
+           background = &quot;#1C2833&quot;, color = &quot;white&quot;)|&gt;
+  add_header_above(c(&quot;Country Data&quot; = 1, &quot;Yearly Details&quot; = 2),
+           background = &quot;#154360&quot;, color = &quot;white&quot;, bold = TRUE, font_size = 18)|&gt;
+  add_header_above(c(&quot;Hazardous Waste Landfilled&quot; = 3), 
+           background = &quot;#f67&quot;, color = &quot;white&quot;, bold = TRUE, font_size = 18)</code></pre>
+<table class="table table-bordered table-hover table-striped table-responsive" style="font-size: 14px;margin-left: auto;margin-right: auto;">
+<thead>
+<tr>
+<th style="border-bottom:hidden;padding-bottom:0;padding-left:3px;padding-right:3px;text-align: center;font-weight: bold;color: white !important;padding-right: 4px;padding-left: 4px;background-color: rgba(255, 102, 119, 255) !important;font-size: 18px;" colspan="3">
+<div style="border-bottom: 1px solid #ddd;padding-bottom: 5px;">
+Hazardous Waste Landfilled
+</div>
+</th>
+</tr>
+<tr>
+<th style="border-bottom:hidden;padding-bottom:0;padding-left:3px;padding-right:3px;text-align: center;font-weight: bold;color: white !important;padding-right: 4px;padding-left: 4px;background-color: rgba(21, 67, 96, 255) !important;font-size: 18px;" colspan="1">
+<div style="border-bottom: 1px solid #ddd;padding-bottom: 5px;">
+Country Data
+</div>
+</th>
+<th style="border-bottom:hidden;padding-bottom:0;padding-left:3px;padding-right:3px;text-align: center;font-weight: bold;color: white !important;padding-right: 4px;padding-left: 4px;background-color: rgba(21, 67, 96, 255) !important;font-size: 18px;" colspan="2">
+<div style="border-bottom: 1px solid #ddd;padding-bottom: 5px;">
+Yearly Details
+</div>
+</th>
+</tr>
+<tr>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(28, 40, 51, 255) !important;font-size: 16px;">
+Country_or_Area
+</th>
+<th style="text-align:right;font-weight: bold;color: white !important;background-color: rgba(28, 40, 51, 255) !important;font-size: 16px;">
+Year
+</th>
+<th style="text-align:right;font-weight: bold;color: white !important;background-color: rgba(28, 40, 51, 255) !important;font-size: 16px;">
+Value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(214, 234, 248, 255) !important;border-right:1px solid;">
+United Arab Emirates
+</td>
+<td style="text-align:right;font-style: italic;background-color: rgba(212, 239, 223, 255) !important;border-right:1px solid;">
+2012
+</td>
+<td style="text-align:right;color: rgba(46, 64, 83, 255) !important;background-color: rgba(249, 231, 159, 255) !important;">
+167075.2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(214, 234, 248, 255) !important;border-right:1px solid;">
+United Arab Emirates
+</td>
+<td style="text-align:right;font-style: italic;background-color: rgba(212, 239, 223, 255) !important;border-right:1px solid;">
+2011
+</td>
+<td style="text-align:right;color: rgba(46, 64, 83, 255) !important;background-color: rgba(249, 231, 159, 255) !important;">
+51697.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(214, 234, 248, 255) !important;border-right:1px solid;">
+United Arab Emirates
+</td>
+<td style="text-align:right;font-style: italic;background-color: rgba(212, 239, 223, 255) !important;border-right:1px solid;">
+2010
+</td>
+<td style="text-align:right;color: rgba(46, 64, 83, 255) !important;background-color: rgba(249, 231, 159, 255) !important;">
+144835.4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(214, 234, 248, 255) !important;border-right:1px solid;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:right;font-style: italic;background-color: rgba(212, 239, 223, 255) !important;border-right:1px solid;">
+2016
+</td>
+<td style="text-align:right;color: rgba(46, 64, 83, 255) !important;background-color: rgba(249, 231, 159, 255) !important;">
+844535.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(214, 234, 248, 255) !important;border-right:1px solid;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:right;font-style: italic;background-color: rgba(212, 239, 223, 255) !important;border-right:1px solid;">
+2014
+</td>
+<td style="text-align:right;color: rgba(46, 64, 83, 255) !important;background-color: rgba(249, 231, 159, 255) !important;">
+869206.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(214, 234, 248, 255) !important;border-right:1px solid;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:right;font-style: italic;background-color: rgba(212, 239, 223, 255) !important;border-right:1px solid;">
+2012
+</td>
+<td style="text-align:right;color: rgba(46, 64, 83, 255) !important;background-color: rgba(249, 231, 159, 255) !important;">
+1034935.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(214, 234, 248, 255) !important;border-right:1px solid;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:right;font-style: italic;background-color: rgba(212, 239, 223, 255) !important;border-right:1px solid;">
+2010
+</td>
+<td style="text-align:right;color: rgba(46, 64, 83, 255) !important;background-color: rgba(249, 231, 159, 255) !important;">
+1296855.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(214, 234, 248, 255) !important;border-right:1px solid;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:right;font-style: italic;background-color: rgba(212, 239, 223, 255) !important;border-right:1px solid;">
+2008
+</td>
+<td style="text-align:right;color: rgba(46, 64, 83, 255) !important;background-color: rgba(249, 231, 159, 255) !important;">
+1270785.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(214, 234, 248, 255) !important;border-right:1px solid;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:right;font-style: italic;background-color: rgba(212, 239, 223, 255) !important;border-right:1px solid;">
+2006
+</td>
+<td style="text-align:right;color: rgba(46, 64, 83, 255) !important;background-color: rgba(249, 231, 159, 255) !important;">
+1509306.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(214, 234, 248, 255) !important;border-right:1px solid;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:right;font-style: italic;background-color: rgba(212, 239, 223, 255) !important;border-right:1px solid;">
+2004
+</td>
+<td style="text-align:right;color: rgba(46, 64, 83, 255) !important;background-color: rgba(249, 231, 159, 255) !important;">
+3003692.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(214, 234, 248, 255) !important;border-right:1px solid;">
+Zambia
+</td>
+<td style="text-align:right;font-style: italic;background-color: rgba(212, 239, 223, 255) !important;border-right:1px solid;">
+2005
+</td>
+<td style="text-align:right;color: rgba(46, 64, 83, 255) !important;background-color: rgba(249, 231, 159, 255) !important;">
+0.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(214, 234, 248, 255) !important;border-right:1px solid;">
+Zambia
+</td>
+<td style="text-align:right;font-style: italic;background-color: rgba(212, 239, 223, 255) !important;border-right:1px solid;">
+2000
+</td>
+<td style="text-align:right;color: rgba(46, 64, 83, 255) !important;background-color: rgba(249, 231, 159, 255) !important;">
+0.0
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Presence of Missing Values</strong></p>
+<pre class="r"><code>na_count &lt;- sum(is.na(df_environment))
+na_summary &lt;- colSums(is.na(df_environment))
+na_count</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p><strong>Handling Missing Values</strong></p>
+<p>As there are no missing values in the dataset, no further handling is
+necessary.</p>
+<p><strong>Transforming/Converting the values in Value column from
+tonnes to megatonnes</strong></p>
+<p><strong>Note:</strong> To enhance interpretability, unit conversion
+will be performed, as large numbers can be challenging to
+comprehend.</p>
+<pre class="r"><code>df_environment &lt;- df_environment |&gt;
+mutate(Values_megatonnes = Value/1000000) |&gt;
+select(Country_or_Area, Year, Values_megatonnes)</code></pre>
+<p><strong>Summary Statistics</strong></p>
+<pre class="r"><code>kbl(summary(df_environment)) |&gt;
+  kable_styling(
+    bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;),
+    full_width = FALSE,
+    position = &quot;center&quot;,
+    font_size = 16
+  ) |&gt;
+  column_spec(1, bold = TRUE, color = &quot;#2E8B57&quot;, background = &quot;#F0FFF0&quot;) |&gt;
+  column_spec(2, bold = TRUE, color = &quot;#1E90FF&quot;, background = &quot;#F0F8FF&quot;) |&gt;
+  column_spec(3, bold = TRUE, color = &quot;#FF4500&quot;, background = &quot;#FFF5EE&quot;) |&gt;
+  column_spec(4, bold = TRUE, color = &quot;#FF4500&quot;, background = &quot;#FFF5EE&quot;) |&gt;
+  row_spec(0, background = &quot;#4682B4&quot;, color = &quot;white&quot;, bold = TRUE) |&gt;
+  add_header_above(c(&quot;Summary Statistics&quot; = 4), bold = TRUE, 
+                   background = &quot;#2F4F4F&quot;, color = &quot;white&quot;) |&gt;
+  add_footnote(&quot;Note: Values are in megatonnes.&quot;, notation = &quot;symbol&quot;)</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="font-size: 16px;width: auto !important;margin-left: auto;margin-right: auto;">
+<thead>
+<tr>
+<th style="border-bottom:hidden;padding-bottom:0;padding-left:3px;padding-right:3px;text-align: center;font-weight: bold;color: white !important;padding-right: 4px;padding-left: 4px;background-color: rgba(47, 79, 79, 255) !important;" colspan="4">
+<div style="border-bottom: 1px solid #ddd;padding-bottom: 5px;">
+Summary Statistics
+</div>
+</th>
+</tr>
+<tr>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(70, 130, 180, 255) !important;">
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(70, 130, 180, 255) !important;">
+Country_or_Area
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(70, 130, 180, 255) !important;">
+Year
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(70, 130, 180, 255) !important;">
+Values_megatonnes
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(46, 139, 87, 255) !important;background-color: rgba(240, 255, 240, 255) !important;">
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(30, 144, 255, 255) !important;background-color: rgba(240, 248, 255, 255) !important;">
+Length:747
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 245, 238, 255) !important;">
+Min. :1990
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 245, 238, 255) !important;">
+Min. : 0.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(46, 139, 87, 255) !important;background-color: rgba(240, 255, 240, 255) !important;">
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(30, 144, 255, 255) !important;background-color: rgba(240, 248, 255, 255) !important;">
+Class :character
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 245, 238, 255) !important;">
+1st Qu.:2006
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 245, 238, 255) !important;">
+1st Qu.: 0.00056
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(46, 139, 87, 255) !important;background-color: rgba(240, 255, 240, 255) !important;">
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(30, 144, 255, 255) !important;background-color: rgba(240, 248, 255, 255) !important;">
+Mode :character
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 245, 238, 255) !important;">
+Median :2010
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 245, 238, 255) !important;">
+Median : 0.02653
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(46, 139, 87, 255) !important;background-color: rgba(240, 255, 240, 255) !important;">
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(30, 144, 255, 255) !important;background-color: rgba(240, 248, 255, 255) !important;">
+NA
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 245, 238, 255) !important;">
+Mean :2010
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 245, 238, 255) !important;">
+Mean : 2.11135
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(46, 139, 87, 255) !important;background-color: rgba(240, 255, 240, 255) !important;">
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(30, 144, 255, 255) !important;background-color: rgba(240, 248, 255, 255) !important;">
+NA
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 245, 238, 255) !important;">
+3rd Qu.:2015
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 245, 238, 255) !important;">
+3rd Qu.: 0.47318
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(46, 139, 87, 255) !important;background-color: rgba(240, 255, 240, 255) !important;">
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(30, 144, 255, 255) !important;background-color: rgba(240, 248, 255, 255) !important;">
+NA
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 245, 238, 255) !important;">
+Max. :2021
+</td>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 245, 238, 255) !important;">
+Max. :116.27778
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td style="padding: 0;border:0;">
+<sup>*</sup> Note: Values are in megatonnes.
+</td>
+</tr>
+</tfoot>
+</table>
+</div>
+<div class="section level2">
+<h2>Analysis of Tidynes of Original DataSet</h2>
+<p><strong>Tidy Data Principles</strong></p>
+<ol style="list-style-type: decimal;">
+<li><p>Each variable must have its own column.</p></li>
+<li><p>Each observation must have its own row.</p></li>
+<li><p>Each value must have its own cell.</p></li>
+</ol>
+<p><strong>Evaluation of Data Tidiness</strong></p>
+<p>Each row in the dataset represents a single observation: a specific
+country or area in a specific year with a value measured in tonnes. All
+columns are appropriately named and follow the tidy data principles.</p>
+<p><strong>Conclusion</strong></p>
+<p>The dataset is Tidy because it adheres to all three principles of
+Data Tidiness. Each variable is in its own column, each observation has
+its own row, and each value is in its own cell.</p>
+</div>
+<div class="section level2">
+<h2>1. Transforming the Data to become Untidy with pivot_wider() and
+Tidy with pivot_longer()</h2>
+<p><strong>Note:</strong> The data is currently in a tidy format;
+however, I will use the pivot_wider function on the Year column to
+transform it into an untidy format for the purpose of performing untidy
+analyses.</p>
+<div class="section level3">
+<h3>Untidy with pivot_wider()</h3>
+<pre class="r"><code>untidy_df_environment &lt;- df_environment |&gt;
+  pivot_wider(names_from = Year, values_from = Values_megatonnes)
+
+kable(head(untidy_df_environment[, 1:10],n=10), caption = &quot;Untidy Dataset with PivotWider&quot;) |&gt;
+  kable_styling(
+    full_width = FALSE,
+    position = &quot;center&quot;,
+    bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;),
+    font_size = 12,
+    fixed_thead = TRUE
+  ) |&gt;
+  column_spec(which(1:10 %% 2 == 0), 
+              background = &quot;lightgreen&quot;) |&gt; 
+  column_spec(which(1:10 %% 2 != 0), 
+              background = &quot;#f98&quot;)</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="font-size: 12px;width: auto !important;margin-left: auto;margin-right: auto;">
+<caption style="font-size: initial !important;">
+Untidy Dataset with PivotWider
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky;top:0;background-color: #FFFFFF;">
+Country_or_Area
+</th>
+<th style="text-align:right;position: sticky;top:0;background-color: #FFFFFF;">
+2014
+</th>
+<th style="text-align:right;position: sticky;top:0;background-color: #FFFFFF;">
+2021
+</th>
+<th style="text-align:right;position: sticky;top:0;background-color: #FFFFFF;">
+2020
+</th>
+<th style="text-align:right;position: sticky;top:0;background-color: #FFFFFF;">
+2019
+</th>
+<th style="text-align:right;position: sticky;top:0;background-color: #FFFFFF;">
+2018
+</th>
+<th style="text-align:right;position: sticky;top:0;background-color: #FFFFFF;">
+2017
+</th>
+<th style="text-align:right;position: sticky;top:0;background-color: #FFFFFF;">
+2016
+</th>
+<th style="text-align:right;position: sticky;top:0;background-color: #FFFFFF;">
+2015
+</th>
+<th style="text-align:right;position: sticky;top:0;background-color: #FFFFFF;">
+2013
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;background-color: rgba(255, 153, 136, 255) !important;">
+Albania
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0000000
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+NA
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+NA
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+NA
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+NA
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+NA
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+NA
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+NA
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(255, 153, 136, 255) !important;">
+Andorra
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0000000
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.0000000
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0000000
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.0000000
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0000000
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.0000000
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0000000
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.0000000
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0000000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(255, 153, 136, 255) !important;">
+Antigua and Barbuda
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0000136
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.0000136
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0000233
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.0000264
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0000096
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.0000120
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0000080
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.0000166
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0000072
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(255, 153, 136, 255) !important;">
+Armenia
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.5717504
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.6601142
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+21.5605670
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.4865958
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.4801704
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.5117143
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.6019174
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.5510201
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.5749738
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(255, 153, 136, 255) !important;">
+Austria
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0602600
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+NA
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+NA
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+NA
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+NA
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+NA
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0664290
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+NA
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(255, 153, 136, 255) !important;">
+Azerbaijan
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.4146336
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.1907610
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.2190020
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.1747950
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.2136530
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.1756130
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.6340000
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.1669651
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0654011
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(255, 153, 136, 255) !important;">
+Bahrain
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0534449
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+NA
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+NA
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.0233158
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0279245
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.0051050
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0073652
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.0072139
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.0377364
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(255, 153, 136, 255) !important;">
+Bangladesh
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+NA
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+NA
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+NA
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+NA
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+NA
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+NA
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+NA
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+NA
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(255, 153, 136, 255) !important;">
+Belarus
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.1535600
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.1608720
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.1341460
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.1771700
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.1239180
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.1107300
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.1159600
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+0.0992800
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.1247200
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(255, 153, 136, 255) !important;">
+Belgium
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+0.9601480
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+NA
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+NA
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+NA
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+NA
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+NA
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+1.2197380
+</td>
+<td style="text-align:right;background-color: rgba(255, 153, 136, 255) !important;">
+NA
+</td>
+<td style="text-align:right;background-color: lightgreen !important;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Explanation of Why the Data is Now Untidy</strong></p>
+<p><strong>Variable in Column Names</strong>: The Year values have
+become column names, violating the principle that each variable should
+have its own column. Year is no longer treated as a variable.</p>
+<p><strong>Loss of Distinct Observations</strong>: Each row should
+represent a unique observation. But the data in each row shows across
+multiple years, so it violates the tidy principles.</p>
+<p><strong>Obscured Value Meaning</strong>: While each cell contains a
+single value, the relationship between the Country and Year is lost.
+This makes it harder to analyze trends over time.</p>
+<p><strong>Conclusion</strong></p>
+<p>Overall, the transformation complicates analysis and interpretation,
+moving the dataset away from tidy principles.</p>
+</div>
+<div class="section level3">
+<h3>Tidy up the data using pivot_longer()</h3>
+<pre class="r"><code>tidy_df_environment &lt;- untidy_df_environment |&gt;
+  pivot_longer(
+    cols = starts_with(c(&quot;20&quot;,&quot;19&quot;)),
+    names_to = &quot;Year&quot;,
+    values_to = &quot;Values_megatonnes&quot;
+  )
+
+tidy_df_environment &lt;- tidy_df_environment |&gt;
+  arrange(desc(Values_megatonnes))
+
+kable(head(tidy_df_environment,n=10), caption = &quot;Tidy Dataset with PivotLonger&quot;) |&gt;
+  kable_styling(
+    full_width = FALSE,
+    position = &quot;center&quot;,
+    bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;),
+    font_size = 12,
+    fixed_thead = TRUE
+  ) |&gt;
+  column_spec(which(1:ncol(tidy_df_environment) %% 2 == 0),
+              bold = TRUE,color = &quot;purple&quot;) |&gt; 
+  column_spec(which(1:ncol(tidy_df_environment) %% 2 != 0),
+              bold = TRUE, color = &quot;green&quot;)</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="font-size: 12px;width: auto !important;margin-left: auto;margin-right: auto;">
+<caption style="font-size: initial !important;">
+Tidy Dataset with PivotLonger
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky;top:0;background-color: #FFFFFF;">
+Country_or_Area
+</th>
+<th style="text-align:left;position: sticky;top:0;background-color: #FFFFFF;">
+Year
+</th>
+<th style="text-align:right;position: sticky;top:0;background-color: #FFFFFF;">
+Values_megatonnes
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;color: green !important;">
+Kazakhstan
+</td>
+<td style="text-align:left;font-weight: bold;color: purple !important;">
+2020
+</td>
+<td style="text-align:right;font-weight: bold;color: green !important;">
+116.27778
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: green !important;">
+Russian Federation
+</td>
+<td style="text-align:left;font-weight: bold;color: purple !important;">
+2003
+</td>
+<td style="text-align:right;font-weight: bold;color: green !important;">
+82.66584
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: green !important;">
+Russian Federation
+</td>
+<td style="text-align:left;font-weight: bold;color: purple !important;">
+2009
+</td>
+<td style="text-align:right;font-weight: bold;color: green !important;">
+54.00243
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: green !important;">
+South Africa
+</td>
+<td style="text-align:left;font-weight: bold;color: purple !important;">
+2017
+</td>
+<td style="text-align:right;font-weight: bold;color: green !important;">
+48.37710
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: green !important;">
+Russian Federation
+</td>
+<td style="text-align:left;font-weight: bold;color: purple !important;">
+2005
+</td>
+<td style="text-align:right;font-weight: bold;color: green !important;">
+47.35460
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: green !important;">
+Russian Federation
+</td>
+<td style="text-align:left;font-weight: bold;color: purple !important;">
+2008
+</td>
+<td style="text-align:right;font-weight: bold;color: green !important;">
+45.11342
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: green !important;">
+Russian Federation
+</td>
+<td style="text-align:left;font-weight: bold;color: purple !important;">
+2007
+</td>
+<td style="text-align:right;font-weight: bold;color: green !important;">
+44.20157
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: green !important;">
+South Africa
+</td>
+<td style="text-align:left;font-weight: bold;color: purple !important;">
+2019
+</td>
+<td style="text-align:right;font-weight: bold;color: green !important;">
+40.43002
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: green !important;">
+South Africa
+</td>
+<td style="text-align:left;font-weight: bold;color: purple !important;">
+2021
+</td>
+<td style="text-align:right;font-weight: bold;color: green !important;">
+38.37120
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: green !important;">
+Russian Federation
+</td>
+<td style="text-align:left;font-weight: bold;color: purple !important;">
+2010
+</td>
+<td style="text-align:right;font-weight: bold;color: green !important;">
+38.14256
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Explanation of Why the Data is Now Tidy</strong></p>
+<p><strong>Each Variable in Its Own Column:</strong> Each variable such
+as Country_or_Area, Year, and Values_megatonnes has its own dedicated
+column, making it clear what each piece of data represents.</p>
+<p><strong>Unique Observations as Rows:</strong> Each row corresponds to
+a unique observation, such as a specific country and year with its
+associated value. This structure allows for easy filtering and
+analysis.</p>
+<p><strong>Consistent Data Structure:</strong> This dataset maintains a
+consistent format where each observation can be treated independently,
+facilitating straightforward data manipulation, aggregation, and
+visualization.</p>
+<p><strong>Conclusion:</strong></p>
+<p>Overall, this structure makes it easy to analyze trends and
+relationships within the data.</p>
+</div>
+</div>
+<div class="section level2">
+<h2>2. Perform Untidy Using Unite and Tidy using Separate Function</h2>
+<p><strong>Note:</strong> The data is currently tidy; however, I will be
+uniting the Year and Country_or_Area columns to create an untidy format
+for the purpose of conducting untidy analyses.</p>
+<div class="section level3">
+<h3>Using Unite Function</h3>
+<pre class="r"><code>combined_data &lt;- df_environment |&gt;
+  unite(&quot;Country_Year&quot;, `Country_or_Area`, Year, sep = &quot;_&quot;, remove = FALSE) |&gt;
+  select(-c(Year,Country_or_Area))
+
+kable(tail(combined_data,n=12)) |&gt;
+  kable_styling(
+    full_width = FALSE,
+    position = &quot;center&quot;,
+    bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;),
+    font_size = 14,
+    fixed_thead = TRUE,
+    latex_options = &quot;striped&quot;
+  ) |&gt;
+  column_spec(1, border_right = TRUE, background = &quot;#DFF0D8&quot;) |&gt;
+  column_spec(2, background = &quot;#F9E79F&quot;, bold = TRUE) |&gt;
+  row_spec(1:2, background = &quot;#FADBD8&quot;, color = &quot;black&quot;) |&gt;
+  row_spec(3:4, background = &quot;#D4E6F1&quot;, color = &quot;black&quot;) |&gt;
+  row_spec(5:6, background = &quot;#F5CBA7&quot;, color = &quot;black&quot;) |&gt;
+  row_spec(7:8, background = &quot;#D5F5E3&quot;, color = &quot;black&quot;) |&gt;
+  row_spec(9:10, background = &quot;#FDEDEC&quot;, color = &quot;black&quot;) |&gt;
+  add_header_above(bold = TRUE, background = &quot;#6A5ACD&quot;,c(&quot;UnTidy dataset&quot; = 2))</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="font-size: 14px;width: auto !important;margin-left: auto;margin-right: auto;">
+<thead>
+<tr>
+<th style="border-bottom:hidden;padding-bottom:0;padding-left:3px;padding-right:3px;text-align: center;font-weight: bold;padding-right: 4px;padding-left: 4px;background-color: rgba(106, 90, 205, 255) !important;" colspan="2">
+<div style="border-bottom: 1px solid #ddd;padding-bottom: 5px;">
+UnTidy dataset
+</div>
+</th>
+</tr>
+<tr>
+<th style="text-align:left;position: sticky;top:0;background-color: #FFFFFF;">
+Country_Year
+</th>
+<th style="text-align:right;position: sticky;top:0;background-color: #FFFFFF;">
+Values_megatonnes
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;background-color: rgba(223, 240, 216, 255) !important;border-right:1px solid;color: black !important;background-color: rgba(250, 219, 216, 255) !important;">
+United Arab Emirates_2012
+</td>
+<td style="text-align:right;font-weight: bold;background-color: rgba(249, 231, 159, 255) !important;color: black !important;background-color: rgba(250, 219, 216, 255) !important;">
+0.1670752
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(223, 240, 216, 255) !important;border-right:1px solid;color: black !important;background-color: rgba(250, 219, 216, 255) !important;">
+United Arab Emirates_2011
+</td>
+<td style="text-align:right;font-weight: bold;background-color: rgba(249, 231, 159, 255) !important;color: black !important;background-color: rgba(250, 219, 216, 255) !important;">
+0.0516970
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(223, 240, 216, 255) !important;border-right:1px solid;color: black !important;background-color: rgba(212, 230, 241, 255) !important;">
+United Arab Emirates_2010
+</td>
+<td style="text-align:right;font-weight: bold;background-color: rgba(249, 231, 159, 255) !important;color: black !important;background-color: rgba(212, 230, 241, 255) !important;">
+0.1448354
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(223, 240, 216, 255) !important;border-right:1px solid;color: black !important;background-color: rgba(212, 230, 241, 255) !important;">
+United Kingdom of Great Britain and Northern Ireland_2016
+</td>
+<td style="text-align:right;font-weight: bold;background-color: rgba(249, 231, 159, 255) !important;color: black !important;background-color: rgba(212, 230, 241, 255) !important;">
+0.8445350
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(223, 240, 216, 255) !important;border-right:1px solid;color: black !important;background-color: rgba(245, 203, 167, 255) !important;">
+United Kingdom of Great Britain and Northern Ireland_2014
+</td>
+<td style="text-align:right;font-weight: bold;background-color: rgba(249, 231, 159, 255) !important;color: black !important;background-color: rgba(245, 203, 167, 255) !important;">
+0.8692060
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(223, 240, 216, 255) !important;border-right:1px solid;color: black !important;background-color: rgba(245, 203, 167, 255) !important;">
+United Kingdom of Great Britain and Northern Ireland_2012
+</td>
+<td style="text-align:right;font-weight: bold;background-color: rgba(249, 231, 159, 255) !important;color: black !important;background-color: rgba(245, 203, 167, 255) !important;">
+1.0349350
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(223, 240, 216, 255) !important;border-right:1px solid;color: black !important;background-color: rgba(213, 245, 227, 255) !important;">
+United Kingdom of Great Britain and Northern Ireland_2010
+</td>
+<td style="text-align:right;font-weight: bold;background-color: rgba(249, 231, 159, 255) !important;color: black !important;background-color: rgba(213, 245, 227, 255) !important;">
+1.2968550
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(223, 240, 216, 255) !important;border-right:1px solid;color: black !important;background-color: rgba(213, 245, 227, 255) !important;">
+United Kingdom of Great Britain and Northern Ireland_2008
+</td>
+<td style="text-align:right;font-weight: bold;background-color: rgba(249, 231, 159, 255) !important;color: black !important;background-color: rgba(213, 245, 227, 255) !important;">
+1.2707850
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(223, 240, 216, 255) !important;border-right:1px solid;color: black !important;background-color: rgba(253, 237, 236, 255) !important;">
+United Kingdom of Great Britain and Northern Ireland_2006
+</td>
+<td style="text-align:right;font-weight: bold;background-color: rgba(249, 231, 159, 255) !important;color: black !important;background-color: rgba(253, 237, 236, 255) !important;">
+1.5093060
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(223, 240, 216, 255) !important;border-right:1px solid;color: black !important;background-color: rgba(253, 237, 236, 255) !important;">
+United Kingdom of Great Britain and Northern Ireland_2004
+</td>
+<td style="text-align:right;font-weight: bold;background-color: rgba(249, 231, 159, 255) !important;color: black !important;background-color: rgba(253, 237, 236, 255) !important;">
+3.0036920
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(223, 240, 216, 255) !important;border-right:1px solid;">
+Zambia_2005
+</td>
+<td style="text-align:right;font-weight: bold;background-color: rgba(249, 231, 159, 255) !important;">
+0.0000000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;background-color: rgba(223, 240, 216, 255) !important;border-right:1px solid;">
+Zambia_2000
+</td>
+<td style="text-align:right;font-weight: bold;background-color: rgba(249, 231, 159, 255) !important;">
+0.0000000
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Explanation why the Data is Untidy</strong></p>
+<p><strong>Combined Variables:</strong> The Country_Year column merges
+country names and years into a single string, making it difficult to
+analyze each variable separately.</p>
+<p><strong>Lack of Clear Structure:</strong> Each observation does not
+have its own row for distinct variables, complicating data manipulation
+and analysis.</p>
+<p><strong>Inconsistent Representation:</strong> This format prevents
+straightforward aggregation and visualization, hindering effective
+insights from the data.</p>
+<p><strong>Conclusion</strong> Overall, the dataset is untidy because it
+violates the Tidy principles.</p>
+</div>
+<div class="section level3">
+<h3>Tidy Up Using separate Function</h3>
+<pre class="r"><code>separated_data &lt;- combined_data |&gt;
+  separate(Country_Year, into = c(&quot;Country_or_Area&quot;, &quot;Year&quot;), sep = &quot;_&quot;)
+
+kable(tail(separated_data,n=10)) |&gt;
+  kable_styling(
+    full_width = TRUE,
+    font_size = 16,
+    bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;),
+    latex_options = c(&quot;scale_down&quot;, &quot;hold_position&quot;)
+  ) |&gt;
+  column_spec(1, bold = TRUE, color = &quot;#FF4500&quot;, background = &quot;#FFFFE0&quot;) |&gt;
+  column_spec(2, italic = TRUE, color = &quot;#2E8B57&quot;, background = &quot;#F5FFFA&quot;) |&gt;
+  column_spec(3, bold = TRUE, color = &quot;#1E90FF&quot;, background = &quot;#E6E6FA&quot;) |&gt;
+  
+  row_spec(0, background = &quot;#4B0082&quot;, color = &quot;white&quot;, 
+           bold = TRUE, font_size = 18) |&gt;
+  add_header_above(c(&quot;Tidy Dataset&quot; = 3), bold = TRUE, 
+           background = &quot;#6A4&quot;, color = &quot;white&quot;, font_size = 20)</code></pre>
+<table class="table table-striped table-hover table-condensed" style="font-size: 16px;margin-left: auto;margin-right: auto;">
+<thead>
+<tr>
+<th style="border-bottom:hidden;padding-bottom:0;padding-left:3px;padding-right:3px;text-align: center;font-weight: bold;color: white !important;padding-right: 4px;padding-left: 4px;background-color: rgba(102, 170, 68, 255) !important;font-size: 20px;" colspan="3">
+<div style="border-bottom: 1px solid #ddd;padding-bottom: 5px;">
+Tidy Dataset
+</div>
+</th>
+</tr>
+<tr>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(75, 0, 130, 255) !important;font-size: 18px;">
+Country_or_Area
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(75, 0, 130, 255) !important;font-size: 18px;">
+Year
+</th>
+<th style="text-align:right;font-weight: bold;color: white !important;background-color: rgba(75, 0, 130, 255) !important;font-size: 18px;">
+Values_megatonnes
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 255, 224, 255) !important;">
+United Arab Emirates
+</td>
+<td style="text-align:left;font-style: italic;color: rgba(46, 139, 87, 255) !important;background-color: rgba(245, 255, 250, 255) !important;">
+2010
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(30, 144, 255, 255) !important;background-color: rgba(230, 230, 250, 255) !important;">
+0.1448354
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 255, 224, 255) !important;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:left;font-style: italic;color: rgba(46, 139, 87, 255) !important;background-color: rgba(245, 255, 250, 255) !important;">
+2016
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(30, 144, 255, 255) !important;background-color: rgba(230, 230, 250, 255) !important;">
+0.8445350
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 255, 224, 255) !important;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:left;font-style: italic;color: rgba(46, 139, 87, 255) !important;background-color: rgba(245, 255, 250, 255) !important;">
+2014
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(30, 144, 255, 255) !important;background-color: rgba(230, 230, 250, 255) !important;">
+0.8692060
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 255, 224, 255) !important;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:left;font-style: italic;color: rgba(46, 139, 87, 255) !important;background-color: rgba(245, 255, 250, 255) !important;">
+2012
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(30, 144, 255, 255) !important;background-color: rgba(230, 230, 250, 255) !important;">
+1.0349350
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 255, 224, 255) !important;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:left;font-style: italic;color: rgba(46, 139, 87, 255) !important;background-color: rgba(245, 255, 250, 255) !important;">
+2010
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(30, 144, 255, 255) !important;background-color: rgba(230, 230, 250, 255) !important;">
+1.2968550
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 255, 224, 255) !important;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:left;font-style: italic;color: rgba(46, 139, 87, 255) !important;background-color: rgba(245, 255, 250, 255) !important;">
+2008
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(30, 144, 255, 255) !important;background-color: rgba(230, 230, 250, 255) !important;">
+1.2707850
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 255, 224, 255) !important;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:left;font-style: italic;color: rgba(46, 139, 87, 255) !important;background-color: rgba(245, 255, 250, 255) !important;">
+2006
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(30, 144, 255, 255) !important;background-color: rgba(230, 230, 250, 255) !important;">
+1.5093060
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 255, 224, 255) !important;">
+United Kingdom of Great Britain and Northern Ireland
+</td>
+<td style="text-align:left;font-style: italic;color: rgba(46, 139, 87, 255) !important;background-color: rgba(245, 255, 250, 255) !important;">
+2004
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(30, 144, 255, 255) !important;background-color: rgba(230, 230, 250, 255) !important;">
+3.0036920
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 255, 224, 255) !important;">
+Zambia
+</td>
+<td style="text-align:left;font-style: italic;color: rgba(46, 139, 87, 255) !important;background-color: rgba(245, 255, 250, 255) !important;">
+2005
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(30, 144, 255, 255) !important;background-color: rgba(230, 230, 250, 255) !important;">
+0.0000000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;color: rgba(255, 69, 0, 255) !important;background-color: rgba(255, 255, 224, 255) !important;">
+Zambia
+</td>
+<td style="text-align:left;font-style: italic;color: rgba(46, 139, 87, 255) !important;background-color: rgba(245, 255, 250, 255) !important;">
+2000
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(30, 144, 255, 255) !important;background-color: rgba(230, 230, 250, 255) !important;">
+0.0000000
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Explanation why the Data is Tidy now</strong></p>
+<p><strong>Each Variable is in Its Own Column:</strong> The dataset has
+separate columns for Country_or_Area, Year, and Values_megatonnes,
+clearly distinguishing different variables.</p>
+<p><strong>Each Observation is a Unique Row:</strong> Each row
+represents a unique combination of country and year, ensuring that every
+observation can be analyzed independently.</p>
+<p><strong>Consistent Structure:</strong> The format allows for
+straightforward data manipulation, aggregation, and visualization,
+making it easy to analyze trends and relationships within the data.</p>
+<p><strong>Conclusion</strong></p>
+<p>The dataset is tidy because it adheres to all three principles of
+Data Tidiness.</p>
+</div>
+</div>
+<div class="section level2">
+<h2>Data visualization with ggplot</h2>
+<div class="section level3">
+<h3>Plot1: Trend of sum of Values Over grouped Countries</h3>
+<pre class="r"><code>sort_df_environment &lt;- df_environment |&gt;
+  group_by(Country_or_Area) |&gt;
+  summarise(Total_Values = sum(Values_megatonnes, na.rm = TRUE)) |&gt;
+  arrange(desc(Total_Values))
+
+
+plt1 &lt;- ggplot(head(sort_df_environment, 6), 
+               aes(x = &quot;&quot;, y = Total_Values, fill = Country_or_Area)) +
+  geom_col(show.legend = TRUE) +
+  coord_polar(theta = &quot;y&quot;) +
+  geom_text(aes(label = paste0(round(Total_Values, 2))), 
+            position = position_stack(vjust = 0.5),color=&quot;maroon&quot;,size = 6) +
+  labs(
+    title = &quot;Top 6 Countries by Values (in Mega Tonnes)&quot;,
+    x = &quot;&quot;,
+    y = &quot;Total Value (Mega Tonnes)&quot;
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 25),
+    axis.text = element_blank() 
+  ) +
+  scale_fill_viridis_d()
+suppressWarnings(print(plt1))</code></pre>
+<p><img src="javascript://" width="1344" style="display: block;margin: auto auto auto 0;"/>
+<strong>Plot1 Pattern inference</strong></p>
+<p>Russian Federation’s total waste landfill is almost equal to that of
+the total landfill by other top 5 countries, combined together</p>
+</div>
+<div class="section level3">
+<h3>Plot2: Scatter Plot of observations based on year and Values in
+megatonnes based on Country</h3>
+<pre class="r"><code>sorted_data &lt;- df_environment |&gt; arrange(desc(Values_megatonnes))
+
+g &lt;- ggplot(head(sorted_data,n=10), 
+            aes(x = Year, y = Values_megatonnes, color = Country_or_Area)) +
+  geom_point(size = 5, alpha = 0.6) +
+  geom_smooth(method = &quot;loess&quot;, linetype = &quot;dashed&quot;, se = FALSE) +
+  facet_wrap(~ Country_or_Area, scales = &quot;free_y&quot;, ncol = 2, nrow = 10) +
+  theme_minimal(base_size = 15) +
+  labs(
+    title = &quot;Value Over Time by Country&quot;,
+    x = &quot;Year&quot;,
+    y = &quot;Value (megatonnes)&quot;
+  )
+plt2 &lt;- g + theme(
+  panel.background = element_rect(fill = &#39;khaki&#39;),
+  panel.grid.major = element_line(colour = &quot;burlywood&quot;, linewidth = 1.5),
+  panel.grid.minor = element_line(colour = &quot;tomato&quot;, 
+                                  linewidth = .25, linetype = &quot;dashed&quot;),
+  panel.border = element_blank(),
+  axis.line.x = element_line(colour = &quot;darkorange&quot;, 
+                             linewidth = 1.5, lineend = &quot;butt&quot;),
+  axis.line.y = element_line(colour = &quot;darkorange&quot;, linewidth = 1.5),
+  plot.background = element_rect(fill = &quot;lightgreen&quot;),
+  plot.margin = unit(c(1, 1, 1, 1), &quot;cm&quot;),
+  strip.text = element_text(size = 10, face = &quot;bold&quot;),
+  axis.text.x = element_text(angle = 45, hjust = 1),
+  axis.text.y = element_text(angle = 45,size = 10)
+) +
+  
+  scale_y_continuous(expand = expansion(mult = c(0.2, 0.3))) +
+  scale_x_continuous(expand = expansion(mult = c(0.2, 0.3)))
+suppressWarnings(print(plt2))</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="javascript://" width="1344" style="display: block;margin: auto auto auto 0;"/>
+<strong>Plot2 Pattern inference</strong> South Africa has done a good
+job in reducing their landfill by a greater extent 2017 to 2022. A
+similar pattern can be observed in Russian Federation but with an uptick
+in the value in 2009</p>
+</div>
+<div class="section level3">
+<h3>Plot 3: Bar Plot of observations based on year,countries and values
+in Mega Tonnes</h3>
+<pre class="r"><code>plt3 &lt;- ggplot(head(sorted_data,n=20), 
+               aes(x = Year, y = Values_megatonnes, fill = Country_or_Area)) +
+  geom_bar(stat = &quot;identity&quot;, show.legend = TRUE) +
+  coord_flip() +
+  geom_text(aes(label = paste0(round(Values_megatonnes, 2))), 
+            position = position_stack(vjust = 0.5),color=&quot;maroon&quot;,size = 7)+
+  labs(
+    title = &quot;Values by Country&quot;,
+    x = &quot;Year&quot;,
+    y = &quot;Values (in Megatonnes)&quot;
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 20, 
+                              face = &quot;bold&quot;, color = &quot;#4C4C4C&quot;),
+    axis.text.y = element_text(size = 14, face = &quot;bold&quot;, color = &quot;#4C4C4C&quot;),
+    axis.text.x = element_text(size = 12, face = &quot;italic&quot;, color = &quot;#4C4C4C&quot;),
+    axis.title.x = element_text(size = 16, face = &quot;bold&quot;, color = &quot;#4C4C4C&quot;),
+    axis.title.y = element_text(size = 16, face = &quot;bold&quot;, color = &quot;#4C4C4C&quot;),
+    panel.grid.major = element_line(color = &quot;grey80&quot;)
+  ) +
+  scale_fill_viridis_d()
+
+suppressWarnings(print(plt3))</code></pre>
+<p><img src="javascript://" width="1344" style="display: block;margin: auto auto auto 0;"/>
+<strong>Plot3 Pattern inference</strong></p>
+<p>Kazakhstan had the most landfill in the year 2020, whereas Russian
+Federation has consistently reduced the waste after its highest dump of
+82 Megatonnes in 2002, but still greater than the total landfill by
+other countries</p>
+</div>
+</div>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script type="module" src="https://s.brightspace.com/lib/bsi/2024.11.269/unbundled/mathjax.js"></script><script type="text/javascript">document.addEventListener('DOMContentLoaded', function() {
+						if (document.querySelector('math') || /\$\$|\\\(|\\\[|\\begin{|\\ref{|\\eqref{/.test(document.body.innerHTML)) {
+							document.querySelectorAll('mspace[linebreak="newline"]').forEach(elm => {
+								elm.setAttribute('style', 'display: block; height: 0.5rem;');
+							});
+
+							window.D2L.MathJax.loadMathJax({
+								outputScale: 1.5,
+								renderLatex: false,
+								enableMML3Support: false
+							});
+						}
+					});</script><script type="module" src="https://s.brightspace.com/lib/bsi/2024.11.269/unbundled/prism.js"></script><script type="text/javascript">document.addEventListener('DOMContentLoaded', function() {
+					document.querySelectorAll('.d2l-code').forEach(code => {
+						window.D2L.Prism.formatCodeElement(code);
+					});
+				});</script><script type="module" src="https://s.brightspace.com/lib/bsi/2024.11.269/unbundled/embeds.js"></script><script type="text/javascript">document.addEventListener('DOMContentLoaded', function() {
+					window.D2L.EmbedRenderer.renderEmbeds(document.body);
+				});</script></body></html>

@@ -1,0 +1,1969 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html><head></head><body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div>
+
+
+
+<h1 class="title toc-ignore">Assignment3-Vemula-CarPricingPrediction</h1>
+<h4 class="author">Divya Vemula</h4>
+<h4 class="date">2024-11-20</h4>
+
+</div>
+
+
+<hr/>
+<div class="section level1">
+<h1>Car Pricing Prediction</h1>
+<div class="section level2">
+<h2>Dataset Summary</h2>
+<p>This dataset contains information about <strong>50,001 car
+listings</strong> for sale, and the goal is to <strong>predict the price
+of the cars</strong> based on various attributes such as the vehicle
+type, fuel type, model, brand, year of registration, and more.</p>
+<ul>
+<li><p>The dataset consists of <strong>19 columns</strong>, with
+features provided for each car, and the target variable being the
+<strong>price</strong>.</p></li>
+<li><p>The <strong>columns</strong> capture various car characteristics
+like the seller type, gearbox, power, mileage, and more, which are used
+to train predictive models for estimating the price.</p></li>
+</ul>
+<div class="section level3">
+<h3>Dataset Source</h3>
+<p>The dataset was sourced from</p>
+<p><a rel="noopener" href="https://www.kaggle.com/datasets/sanskrutipanda/car-pricing-prediction/data">Kaggle</a>.</p>
+</div>
+<div class="section level3">
+<h3>Kaggle Screenshot</h3>
+<div class="float">
+<img src="javascript://" alt="No R notebook available"/>
+<div class="figcaption">No R notebook available</div>
+</div>
+</div>
+<div class="section level3">
+<h3>Describing the outcome and the predictors in the Dataset</h3>
+<p><strong>Predictors:</strong></p>
+<ul>
+<li><strong>name</strong>: The name of the car model (e.g.,
+“Volvo_XC90_2.4D_Summum”).</li>
+<li><strong>dateCrawled</strong>: The date when the listing was crawled
+from the website (e.g., “30/03/2016 13:51”).</li>
+<li><strong>seller</strong>: The type of seller, either “private” or
+“dealer”.</li>
+<li><strong>offerType</strong>: Type of the offer (e.g., “offer”
+indicates it’s a listing for sale).</li>
+<li><strong>abtest</strong>: Randomized A/B testing groups (e.g.,
+“control” or “test”).</li>
+<li><strong>vehicleType</strong>: The type of vehicle, such as “SUV”,
+“limousine”, or “small car”.</li>
+<li><strong>yearOfRegistration</strong>: The year the car was
+registered.</li>
+<li><strong>gearbox</strong>: The type of gearbox (e.g., “manual” or
+“automatic”).</li>
+<li><strong>powerPS</strong>: The power of the car’s engine in
+horsepower (PS).</li>
+<li><strong>model</strong>: The specific model of the car (e.g., “3er”,
+“xc_reihe”).</li>
+<li><strong>kilometer</strong>: The total kilometers the car has been
+driven.</li>
+<li><strong>monthOfRegistration</strong>: The month in which the car was
+registered.</li>
+<li><strong>fuelType</strong>: Type of fuel used by the car (e.g.,
+“diesel”, “petrol”).</li>
+<li><strong>brand</strong>: The brand of the car (e.g., “BMW”,
+“Volkswagen”).</li>
+<li><strong>notRepairedDamage</strong>: Whether the car has been
+repaired after previous damage (“yes” or “no”).</li>
+<li><strong>postalCode</strong>: The postal code where the car is
+located.</li>
+<li><strong>dateCreated</strong>: The date when the listing was created
+(e.g., “30/03/2016 0:00”).</li>
+<li><strong>lastSeen</strong>: The date when the listing was last seen
+(e.g., “7/4/2016 4:44”).</li>
+</ul>
+<p><strong>Outcome Variable:</strong></p>
+<ul>
+<li><strong>price</strong>: price of the car in EUR (target
+variable).</li>
+</ul>
+</div>
+<div class="section level3">
+<h3>Objective</h3>
+<ul>
+<li><p>The goal of this dataset is to predict the <strong>price</strong>
+of a car based on the various features.</p></li>
+<li><p>This is a regression problem where the continuous dependent
+variable is the ‘price’ column, and the independent variables include
+the other attributes.</p></li>
+</ul>
+</div>
+<div class="section level3">
+<h3>Data Preprocessing</h3>
+<ul>
+<li><p>Converting categorical variables (e.g., ‘gearbox’, ‘fuelType’,
+‘brand’) to numeric values using encoding techniques.</p></li>
+<li><p>Handling missing values</p></li>
+<li><p>Splitting the data into training and testing sets for model
+evaluation.</p></li>
+</ul>
+<hr/>
+</div>
+</div>
+<div class="section level2">
+<h2>Load Required Dependencies</h2>
+<pre class="r"><code>options(repos = c(CRAN = &quot;https://cloud.r-project.org&quot;))
+if (!require(&#39;tidyverse&#39;)) install.packages(&#39;tidyverse&#39;); library(&#39;tidyverse&#39;)
+if (!require(&#39;h2o&#39;)) install.packages(&#39;gh&#39;); library(&#39;gh&#39;)
+if (!require(&#39;kableExtra&#39;)) install.packages(&#39;kableExtra&#39;); library(&#39;kableExtra&#39;)
+if (!require(&#39;DALEXtra&#39;)) install.packages(&#39;DALEXtra&#39;); library(&#39;DALEXtra&#39;)
+if (!require(&#39;skimr&#39;)) install.packages(&#39;skimr&#39;); library(&#39;skimr&#39;)
+if (!require(&#39;recipes&#39;)) install.packages(&#39;recipes&#39;); library(&#39;recipes&#39;)</code></pre>
+<hr/>
+</div>
+<div class="section level2">
+<h2>Read the postprocessed data</h2>
+<pre class="r"><code>carpricing_df = read_csv(&quot;Assignment3-Vemula-CarPricingPrediction.csv&quot;, show_col_types = FALSE)</code></pre>
+<div class="section level3">
+<h3>Predictors Data</h3>
+<pre class="r"><code>train_x_tbl &lt;- carpricing_df |&gt; select(-price)
+kable(head(train_x_tbl, 10), format = &quot;html&quot;, align = &quot;l&quot;, caption = &quot;Top 10 Rows of Training Predictor Variables&quot;) %&gt;% 
+  kable_styling(full_width = TRUE, bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;, &quot;bordered&quot;), position = &quot;center&quot;, font_size = 14) %&gt;%
+  column_spec(1, bold = TRUE, background = &quot;#D3D3D3&quot;) %&gt;% 
+  row_spec(0, bold = TRUE, color = &quot;white&quot;, background = &quot;#4CAF50&quot;) %&gt;% 
+  
+  footnote(general = &quot;Top 10 rows&quot;, general_title = &quot;Note: &quot;, footnote_as_chunk = TRUE)</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive table-bordered" style="font-size: 14px;margin-left: auto;margin-right: auto;border-bottom: 0;">
+<caption style="font-size: initial !important;">
+Top 10 Rows of Training Predictor Variables
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+name
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+seller
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+offerType
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+abtest
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+vehicleType
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+yearOfRegistration
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+gearbox
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+powerPS
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+model
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+kilometer
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+monthOfRegistration
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+fuelType
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+brand
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+notRepairedDamage
+</th>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(76, 175, 80, 255) !important;">
+postalCode
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(211, 211, 211, 255) !important;">
+Zu_verkaufen
+</td>
+<td style="text-align:left;">
+private
+</td>
+<td style="text-align:left;">
+offer
+</td>
+<td style="text-align:left;">
+test
+</td>
+<td style="text-align:left;">
+limousine
+</td>
+<td style="text-align:left;">
+2003
+</td>
+<td style="text-align:left;">
+manual
+</td>
+<td style="text-align:left;">
+150
+</td>
+<td style="text-align:left;">
+3er
+</td>
+<td style="text-align:left;">
+150000
+</td>
+<td style="text-align:left;">
+3
+</td>
+<td style="text-align:left;">
+diesel
+</td>
+<td style="text-align:left;">
+bmw
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:left;">
+20257
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(211, 211, 211, 255) !important;">
+Volvo_XC90_2.4D_Summum
+</td>
+<td style="text-align:left;">
+private
+</td>
+<td style="text-align:left;">
+offer
+</td>
+<td style="text-align:left;">
+control
+</td>
+<td style="text-align:left;">
+suv
+</td>
+<td style="text-align:left;">
+2005
+</td>
+<td style="text-align:left;">
+manual
+</td>
+<td style="text-align:left;">
+163
+</td>
+<td style="text-align:left;">
+xc_reihe
+</td>
+<td style="text-align:left;">
+150000
+</td>
+<td style="text-align:left;">
+6
+</td>
+<td style="text-align:left;">
+diesel
+</td>
+<td style="text-align:left;">
+volvo
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:left;">
+88045
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(211, 211, 211, 255) !important;">
+Volkswagen_Touran
+</td>
+<td style="text-align:left;">
+private
+</td>
+<td style="text-align:left;">
+offer
+</td>
+<td style="text-align:left;">
+test
+</td>
+<td style="text-align:left;">
+bus
+</td>
+<td style="text-align:left;">
+2003
+</td>
+<td style="text-align:left;">
+manual
+</td>
+<td style="text-align:left;">
+101
+</td>
+<td style="text-align:left;">
+touran
+</td>
+<td style="text-align:left;">
+150000
+</td>
+<td style="text-align:left;">
+11
+</td>
+<td style="text-align:left;">
+diesel
+</td>
+<td style="text-align:left;">
+volkswagen
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:left;">
+27449
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(211, 211, 211, 255) !important;">
+Seat_Ibiza_1.4_16V_Reference
+</td>
+<td style="text-align:left;">
+private
+</td>
+<td style="text-align:left;">
+offer
+</td>
+<td style="text-align:left;">
+control
+</td>
+<td style="text-align:left;">
+small car
+</td>
+<td style="text-align:left;">
+2006
+</td>
+<td style="text-align:left;">
+manual
+</td>
+<td style="text-align:left;">
+86
+</td>
+<td style="text-align:left;">
+ibiza
+</td>
+<td style="text-align:left;">
+60000
+</td>
+<td style="text-align:left;">
+12
+</td>
+<td style="text-align:left;">
+petrol
+</td>
+<td style="text-align:left;">
+seat
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:left;">
+34537
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(211, 211, 211, 255) !important;">
+Volvo_XC90_D5_Aut._RDesign_R_Design_AWD_GSHD_Sitzhzg.
+</td>
+<td style="text-align:left;">
+private
+</td>
+<td style="text-align:left;">
+offer
+</td>
+<td style="text-align:left;">
+test
+</td>
+<td style="text-align:left;">
+suv
+</td>
+<td style="text-align:left;">
+2008
+</td>
+<td style="text-align:left;">
+automatic
+</td>
+<td style="text-align:left;">
+185
+</td>
+<td style="text-align:left;">
+xc_reihe
+</td>
+<td style="text-align:left;">
+150000
+</td>
+<td style="text-align:left;">
+11
+</td>
+<td style="text-align:left;">
+diesel
+</td>
+<td style="text-align:left;">
+volvo
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:left;">
+55270
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(211, 211, 211, 255) !important;">
+VW_Passat_35i_Facelift_Limousine_T&#220;V_Neu
+</td>
+<td style="text-align:left;">
+private
+</td>
+<td style="text-align:left;">
+offer
+</td>
+<td style="text-align:left;">
+test
+</td>
+<td style="text-align:left;">
+limousine
+</td>
+<td style="text-align:left;">
+1995
+</td>
+<td style="text-align:left;">
+manual
+</td>
+<td style="text-align:left;">
+90
+</td>
+<td style="text-align:left;">
+passat
+</td>
+<td style="text-align:left;">
+150000
+</td>
+<td style="text-align:left;">
+2
+</td>
+<td style="text-align:left;">
+petrol
+</td>
+<td style="text-align:left;">
+volkswagen
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:left;">
+26826
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(211, 211, 211, 255) !important;">
+Opel_astra
+</td>
+<td style="text-align:left;">
+private
+</td>
+<td style="text-align:left;">
+offer
+</td>
+<td style="text-align:left;">
+test
+</td>
+<td style="text-align:left;">
+station wagon
+</td>
+<td style="text-align:left;">
+1996
+</td>
+<td style="text-align:left;">
+manual
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+astra
+</td>
+<td style="text-align:left;">
+150000
+</td>
+<td style="text-align:left;">
+5
+</td>
+<td style="text-align:left;">
+petrol
+</td>
+<td style="text-align:left;">
+opel
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:left;">
+56422
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(211, 211, 211, 255) !important;">
+Mercedes_Benz_CLK_Coupe_200
+</td>
+<td style="text-align:left;">
+private
+</td>
+<td style="text-align:left;">
+offer
+</td>
+<td style="text-align:left;">
+test
+</td>
+<td style="text-align:left;">
+coupe
+</td>
+<td style="text-align:left;">
+1997
+</td>
+<td style="text-align:left;">
+manual
+</td>
+<td style="text-align:left;">
+136
+</td>
+<td style="text-align:left;">
+clk
+</td>
+<td style="text-align:left;">
+150000
+</td>
+<td style="text-align:left;">
+11
+</td>
+<td style="text-align:left;">
+petrol
+</td>
+<td style="text-align:left;">
+mercedes_benz
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:left;">
+13353
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(211, 211, 211, 255) !important;">
+Vectra_C_Caravan_1_8_Edition_Facelift_m_AHK_Inspektion_neu_sauber
+</td>
+<td style="text-align:left;">
+private
+</td>
+<td style="text-align:left;">
+offer
+</td>
+<td style="text-align:left;">
+test
+</td>
+<td style="text-align:left;">
+station wagon
+</td>
+<td style="text-align:left;">
+2005
+</td>
+<td style="text-align:left;">
+manual
+</td>
+<td style="text-align:left;">
+122
+</td>
+<td style="text-align:left;">
+vectra
+</td>
+<td style="text-align:left;">
+150000
+</td>
+<td style="text-align:left;">
+12
+</td>
+<td style="text-align:left;">
+petrol
+</td>
+<td style="text-align:left;">
+opel
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:left;">
+28307
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;background-color: rgba(211, 211, 211, 255) !important;">
+Skoda_Octavia_2.0_TDI_DSG_Elegance
+</td>
+<td style="text-align:left;">
+private
+</td>
+<td style="text-align:left;">
+offer
+</td>
+<td style="text-align:left;">
+test
+</td>
+<td style="text-align:left;">
+limousine
+</td>
+<td style="text-align:left;">
+2005
+</td>
+<td style="text-align:left;">
+automatic
+</td>
+<td style="text-align:left;">
+140
+</td>
+<td style="text-align:left;">
+octavia
+</td>
+<td style="text-align:left;">
+125000
+</td>
+<td style="text-align:left;">
+4
+</td>
+<td style="text-align:left;">
+diesel
+</td>
+<td style="text-align:left;">
+skoda
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:left;">
+16761
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td style="padding: 0;">
+<span style="font-style: italic;">Note: </span> <sup></sup> Top 10 rows
+</td>
+</tr>
+</tfoot>
+</table>
+</div>
+<div class="section level3">
+<h3>Outcome Varible Data</h3>
+<pre class="r"><code>train_y_tbl &lt;- carpricing_df |&gt; select(price)
+
+kable(head(train_y_tbl, 10), format = &quot;html&quot;, align = &quot;l&quot;, caption = &quot;Top 10 Rows of Outcome Variable&quot;) %&gt;% 
+  kable_styling(full_width = TRUE, bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;, &quot;bordered&quot;, &quot;highlight&quot;), position = &quot;center&quot;, font_size = 14) %&gt;% 
+  add_header_above(c(&quot;Price Data&quot; = 1)) %&gt;% 
+  row_spec(0, bold = TRUE, color = &quot;white&quot;, background = &quot;#2C3E50&quot;) %&gt;% 
+  column_spec(1, color = &quot;white&quot;, background = &quot;#E74C3C&quot;) %&gt;% 
+  footnote(general = &quot;This table displays the top 10 rows of the training target variable after preprocessing.&quot;, general_title = &quot;Note: &quot;, footnote_as_chunk = TRUE)</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive table-bordered" style="font-size: 14px;margin-left: auto;margin-right: auto;border-bottom: 0;">
+<caption style="font-size: initial !important;">
+Top 10 Rows of Outcome Variable
+</caption>
+<thead>
+<tr>
+<th style="border-bottom:hidden;padding-bottom:0;padding-left:3px;padding-right:3px;text-align: center;" colspan="1">
+<div style="border-bottom: 1px solid #ddd;padding-bottom: 5px;">
+Price Data
+</div>
+</th>
+</tr>
+<tr>
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(44, 62, 80, 255) !important;">
+price
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;color: white !important;background-color: rgba(231, 76, 60, 255) !important;">
+0.4543538
+</td>
+</tr>
+<tr>
+<td style="text-align:left;color: white !important;background-color: rgba(231, 76, 60, 255) !important;">
+0.4597607
+</td>
+</tr>
+<tr>
+<td style="text-align:left;color: white !important;background-color: rgba(231, 76, 60, 255) !important;">
+0.4525266
+</td>
+</tr>
+<tr>
+<td style="text-align:left;color: white !important;background-color: rgba(231, 76, 60, 255) !important;">
+0.4544139
+</td>
+</tr>
+<tr>
+<td style="text-align:left;color: white !important;background-color: rgba(231, 76, 60, 255) !important;">
+0.4612793
+</td>
+</tr>
+<tr>
+<td style="text-align:left;color: white !important;background-color: rgba(231, 76, 60, 255) !important;">
+0.4450475
+</td>
+</tr>
+<tr>
+<td style="text-align:left;color: white !important;background-color: rgba(231, 76, 60, 255) !important;">
+0.4379477
+</td>
+</tr>
+<tr>
+<td style="text-align:left;color: white !important;background-color: rgba(231, 76, 60, 255) !important;">
+0.4474384
+</td>
+</tr>
+<tr>
+<td style="text-align:left;color: white !important;background-color: rgba(231, 76, 60, 255) !important;">
+0.4546241
+</td>
+</tr>
+<tr>
+<td style="text-align:left;color: white !important;background-color: rgba(231, 76, 60, 255) !important;">
+0.4575694
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td style="padding: 0;">
+<span style="font-style: italic;">Note: </span> <sup></sup> This table
+displays the top 10 rows of the training target variable after
+preprocessing.
+</td>
+</tr>
+</tfoot>
+</table>
+</div>
+</div>
+<div class="section level2">
+<h2>Loading the trained/saved model</h2>
+<p><strong>Initialize the h2o Instance</strong></p>
+<pre class="r"><code>h2o.init(nthreads = -1)</code></pre>
+<pre><code>##  Connection successful!
+## 
+## R is connected to the H2O cluster: 
+##     H2O cluster uptime:         59 minutes 34 seconds 
+##     H2O cluster timezone:       America/New_York 
+##     H2O data parsing timezone:  UTC 
+##     H2O cluster version:        3.44.0.3 
+##     H2O cluster version age:    11 months 
+##     H2O cluster name:           H2O_started_from_R_divya_jra964 
+##     H2O cluster total nodes:    1 
+##     H2O cluster total memory:   7.25 GB 
+##     H2O cluster total cores:    22 
+##     H2O cluster allowed cores:  22 
+##     H2O cluster healthy:        TRUE 
+##     H2O Connection ip:          localhost 
+##     H2O Connection port:        54321 
+##     H2O Connection proxy:       NA 
+##     H2O Internal Security:      FALSE 
+##     R Version:                  R version 4.4.1 (2024-06-14 ucrt)</code></pre>
+<p><strong>Summary Of the model</strong></p>
+<pre class="r"><code>h2o_model &lt;- h2o.loadModel(&quot;Assignment3-Vemula-CarPricingPrediction.h2o&quot;)
+summary(h2o_model)</code></pre>
+<pre><code>## Model Details:
+## ==============
+## 
+## H2ORegressionModel: drf
+## Model Key:  rf_grid_random_model_19 
+## Model Summary: 
+##   number_of_trees number_of_internal_trees model_size_in_bytes min_depth
+## 1              20                       20              156684        10
+##   max_depth mean_depth min_leaves max_leaves mean_leaves
+## 1        10   10.00000        305        434   372.45000
+## 
+## H2ORegressionMetrics: drf
+## ** Reported on training data. **
+## ** Metrics reported on Out-Of-Bag training samples **
+## 
+## MSE:  0.005537556
+## RMSE:  0.07441476
+## MAE:  0.0244764
+## RMSLE:  0.0612471
+## Mean Residual Deviance :  0.005537556
+## 
+## 
+## H2ORegressionMetrics: drf
+## ** Reported on validation data. **
+## ** Validation metrics **
+## 
+## MSE:  0.005206498
+## RMSE:  0.07215607
+## MAE:  0.02437954
+## RMSLE:  0.05952049
+## Mean Residual Deviance :  0.005206498
+## 
+## 
+## 
+## 
+## Scoring History: 
+##             timestamp   duration number_of_trees training_rmse training_mae
+## 1 2024-11-20 15:31:18 16.810 sec               0            NA           NA
+## 2 2024-11-20 15:31:18 16.837 sec               1       0.07724      0.02538
+## 3 2024-11-20 15:31:18 16.860 sec               2       0.07614      0.02519
+## 4 2024-11-20 15:31:18 16.892 sec               3       0.07713      0.02521
+## 5 2024-11-20 15:31:18 16.923 sec               4       0.07691      0.02526
+##   training_deviance validation_rmse validation_mae validation_deviance
+## 1                NA              NA             NA                  NA
+## 2           0.00597         0.07793        0.02630             0.00607
+## 3           0.00580         0.07536        0.02551             0.00568
+## 4           0.00595         0.07395        0.02495             0.00547
+## 5           0.00592         0.07329        0.02479             0.00537
+## 
+## ---
+##              timestamp   duration number_of_trees training_rmse training_mae
+## 16 2024-11-20 15:31:18 17.311 sec              15       0.07491      0.02469
+## 17 2024-11-20 15:31:18 17.374 sec              16       0.07481      0.02464
+## 18 2024-11-20 15:31:18 17.413 sec              17       0.07468      0.02457
+## 19 2024-11-20 15:31:19 17.447 sec              18       0.07460      0.02455
+## 20 2024-11-20 15:31:19 17.491 sec              19       0.07453      0.02452
+## 21 2024-11-20 15:31:19 17.531 sec              20       0.07441      0.02448
+##    training_deviance validation_rmse validation_mae validation_deviance
+## 16           0.00561         0.07232        0.02441             0.00523
+## 17           0.00560         0.07227        0.02438             0.00522
+## 18           0.00558         0.07218        0.02433             0.00521
+## 19           0.00557         0.07220        0.02438             0.00521
+## 20           0.00555         0.07222        0.02443             0.00522
+## 21           0.00554         0.07216        0.02438             0.00521
+## 
+## Variable Importances: (Extract with `h2o.varimp`) 
+## =================================================
+## 
+## Variable Importances: 
+##               variable relative_importance scaled_importance percentage
+## 1                model          203.278137          1.000000   0.259662
+## 2  monthOfRegistration          121.714569          0.598759   0.155475
+## 3                 name          103.209900          0.507727   0.131837
+## 4                brand           93.879715          0.461829   0.119919
+## 5              powerPS           60.292606          0.296602   0.077016
+## 6           postalCode           47.058968          0.231500   0.060112
+## 7   yearOfRegistration           40.707306          0.200254   0.051998
+## 8            kilometer           37.500290          0.184478   0.047902
+## 9          vehicleType           35.930466          0.176755   0.045897
+## 10   notRepairedDamage           16.447901          0.080913   0.021010
+## 11              abtest           10.704680          0.052660   0.013674
+## 12            fuelType            9.046638          0.044504   0.011556
+## 13             gearbox            3.086386          0.015183   0.003942
+## 14              seller            0.000000          0.000000   0.000000
+## 15           offerType            0.000000          0.000000   0.000000</code></pre>
+</div>
+<div class="section level2">
+<h2>Predictive performance of the model</h2>
+<p><strong>performance metrics</strong></p>
+<pre class="r"><code>Splits &lt;- h2o.splitFrame(as.h2o(carpricing_df), ratios = 0.8, seed = 223)</code></pre>
+<pre><code>##   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%</code></pre>
+<pre class="r"><code>test_split &lt;- Splits[[2]]
+ 
+performance &lt;- h2o.performance(h2o_model, newdata = test_split)
+print(performance)</code></pre>
+<pre><code>## H2ORegressionMetrics: drf
+## 
+## MSE:  0.00460488
+## RMSE:  0.06785927
+## MAE:  0.02263126
+## RMSLE:  0.05649776
+## Mean Residual Deviance :  0.00460488</code></pre>
+<pre class="r"><code>mse &lt;- h2o.mse(performance)  
+rmse &lt;- h2o.rmse(performance) 
+mae &lt;- h2o.mae(performance) 
+
+cat(&quot;MSE: &quot;, mse, &quot;\n&quot;)</code></pre>
+<pre><code>## MSE:  0.00460488</code></pre>
+<pre class="r"><code>cat(&quot;RMSE: &quot;, rmse, &quot;\n&quot;)</code></pre>
+<pre><code>## RMSE:  0.06785927</code></pre>
+<pre class="r"><code>cat(&quot;MAE: &quot;, mae, &quot;\n&quot;)</code></pre>
+<pre><code>## MAE:  0.02263126</code></pre>
+<div class="section level3">
+<h3>Plot: performance of the model</h3>
+<pre class="r"><code>plot(h2o_model)</code></pre>
+<p><img src="javascript://" width="672"/>
+<strong>Plot Explanation</strong>: - The “Scoring History” plot
+indicates that the model performs exceptionally well, with both training
+and validation RMSE values remaining low and stable as the number of
+trees increases. - This stability and low error rate suggest that the
+model is robust and reliable for predicting the target variable (likely
+car prices in this context).</p>
+</div>
+</div>
+<div class="section level2">
+<h2>Explain the model</h2>
+<p><strong>Explainer</strong></p>
+<pre class="r"><code>h2o_exp = explain_h2o(
+  model = h2o_model,
+  data = train_x_tbl,
+  y = train_y_tbl$price,
+  label = &quot;H2O&quot;,
+  type = &quot;regression&quot;
+)</code></pre>
+<pre><code>## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03
+## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03</code></pre>
+<p><strong>New observation</strong></p>
+<pre class="r"><code>new_observation &lt;- data.frame(
+  dateCrawled = c(&quot;30/03/2016 13:51&quot;, &quot;7/3/2016 9:54&quot;),
+  name = c(&quot;Zu_verkaufen&quot;, &quot;Volvo_XC90_2.4D_Summum&quot;),
+  seller = c(&quot;private&quot;, &quot;private&quot;),
+  offerType = c(&quot;offer&quot;, &quot;offer&quot;),
+  price = c(4450, 13299),
+  abtest = c(&quot;test&quot;, &quot;control&quot;),
+  vehicleType = c(&quot;limousine&quot;, &quot;suv&quot;),
+  yearOfRegistration = c(2003, 2005),
+  gearbox = c(&quot;manual&quot;, &quot;manual&quot;),
+  powerPS = c(150, 163),
+  model = c(&quot;3er&quot;, &quot;xc_reihe&quot;),
+  kilometer = c(150000, 150000),
+  monthOfRegistration = c(3, 6),
+  fuelType = c(&quot;diesel&quot;, &quot;diesel&quot;),
+  brand = c(&quot;bmw&quot;, &quot;volvo&quot;),
+  notRepairedDamage = c(NA, &quot;no&quot;),
+  dateCreated = c(&quot;30/03/2016 0:00&quot;, &quot;7/3/2016 0:00&quot;),
+  postalCode = c(20257, 88045),
+  lastSeen = c(&quot;7/4/2016 4:44&quot;, &quot;26/03/2016 13:17&quot;)
+)
+
+new_observation_tbl_skim = partition(skim(new_observation))
+names(new_observation_tbl_skim)</code></pre>
+<pre><code>## [1] &quot;character&quot; &quot;numeric&quot;</code></pre>
+<pre class="r"><code>string_2_factor_names_new_observation &lt;- new_observation_tbl_skim$character$skim_variable
+rec_obj_new_observation &lt;- recipe(~ ., data = new_observation) |&gt;
+  step_string2factor(all_of(string_2_factor_names_new_observation)) |&gt;
+  prep()
+new_observation_processed_tbl &lt;- bake(rec_obj_new_observation, new_observation)
+price_prediction = new_observation_processed_tbl</code></pre>
+</div>
+<div class="section level2">
+<h2>XAI-Method-1 - SHAP</h2>
+<pre class="r"><code>h2o_exp_shap &lt;- predict_parts(
+explainer = h2o_exp, new_observation = price_prediction, type = &quot;shap&quot;, B = 3)</code></pre>
+<pre><code>## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03
+## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03
+## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03
+## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03
+## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03
+## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03
+## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03
+## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03
+## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03
+## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03
+## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03
+## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03
+## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03
+## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03
+## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03
+## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03
+## Warning in doTryCatch(return(expr), name, parentenv, handler): Test/Validation dataset column &#39;name&#39; has levels not trained on: [&quot;Sehr_Schoener_VW_Lupo_1_4_Sport__Bildschoene_Optik_Tuev_02/2018,privat,Angebot,2690,test,kleinwagen,2002,manuell,75,lupo,150000,8,benzin,volkswagen,,2016-03-15 00:00:00,0,47166,2016-03-18 01:17:28
+## 2016-04-03 22:43:32,Volkswagen_Passat_Variant_1.9_TDI_Comfortline,privat,Angebot,2299,control,kombi,1999,manuell,90,passat,150000,11,diesel,volkswagen,nein,2016-04-03 00:00:00,0,67700,2016-04-05 23:45:02
+## 2016-03-10 13:56:20,Nissan_Juke_1.6_DIG_T_Tekna,privat,Angebot,10200,test,kleinwagen,2011,manuell,190,juke,60000,12,benzin,nissan,nein,2016-03-10 00:00:00,0,38871,2016-03-11 01:17:05
+## 2016-03-27 10:58:26,Golf_III_3_GT_Special_mit_BBS__no_VR6__GTI__1.8T_,privat,Angebot,400,control,limousine,1996,manuell,101,golf,150000,0,,volkswagen,,2016-03-27 00:00:00,0,23898,2016-04-05 03:16:54
+## 2016-04-02 20:54:52,Mercedes_cls_320_cdi,privat,Angebot,9800,test,limousine,2006,automatik,272,andere,150000,4,diesel,mercedes_benz,,2016-04-02 00:00:00,0,48268,2016-04-02 20:54:52
+## 2016-03-09 15:36:43,Alfa_Romeo_166_3.0_V6_24V_Distinctive_Sportronic,privat,Angebot,1590,control,limousine,2002,automatik,220,andere,150000,11,benzin,alfa_romeo,nein,2016-03-09 00:00:00,0,38382,2016-03-14 05:46:38
+## 2016-03-25 16:55:46,Kia_Rio_1.4_Edition_7,privat,Angebot,7800,control,kleinwagen,2012,manuell,109,rio,30000,1,benzin,kia,nein,2016-03-25 00:00:00,0,94244,2016-04-06 21:46:43
+## 2016-03-27 14:46:09,BMW_BMW_320_Ci_Dunkelblau_Metallic,privat,Angebot,7599,control,cabrio,2002,manuell,170,3er,80000,10,benzin,bmw,nein,2016-03-27 00:00:00,0,14109,2016-04-07 11:16:21
+## 2016-03-13 19:23:18,Renault_Twingo_1.2_ohne_Hu/Au,privat,Angebot,100,test,,2000,,0,twingo,150000,1,benzin,renault,,2016-03-13 00:00:00,0,35641,2016-03-29 06:45:18
+## 2016-04-05 16:36:21,Renault_Twingo!!,privat,Angebot,0,test,kleinwagen,1998,manuell,0,twingo,125000,0,benzin,renault,,2016-04-05 00:00:00,0,57234,2016-04-05 16:36:21
+## 2016-03-21 17:39:00,Opel_Elegance_1.8_Automatik__und_Anhaengerkupplung,privat,Angebot,4800,control,bus,2004,automatik,125,zafira,100000,3,benzin,opel,nein,2016-03-21 00:00:00,0,92318,2016-03-21 17:39:00
+## 2016-03-28 20:45:27,Seat_Leon_mit_Umweltplakette_gruen,privat,Angebot,3599,control,limousine,2005,manuell,110,leon,150000,2,diesel,seat,nein,2016-03-28 00:00:00,0,58119,2016-03-28 20:45:27
+## 2016-03-12 20:51:51,Feuerwehr___Oldtimer_Magirus/Faun_F24_LL___T&#220;V/H_Kennzeichen_NEU,privat,Angebot,4500,test,andere,1970,manuell,64,,30000,1,,sonstige_autos,nein,2016-03-12 00:00:00,0,26603,2016-04-05 15:47:16
+## 2016-03-22 15:56:38,OPEL_OMEGA_OHNE_T&#220;V,privat,Angebot,270,control,limousine,1999,manuell,0,omega,150000,9,benzin,opel,,2016-03-22 00:00:00,0,45549,2016-04-06 05:45:48
+## 2016-03-30 13:37:51,Honda_crv_rd1,privat,Angebot,2200,test,suv,2002,manuell,107,,150000,2,lpg,honda,ja,2016-03-30 00:00:00,0,47178,2016-04-01 07:17:10
+## 2016-04-02 17:46:08,Volkswagen_Golf_4__1.4L_75PS_AHK_T&#220;V_frei_Klima_erst_123tkm,privat,Angebot,2300,control,limousine,1999,manuell,75,golf,125000,6,benzin,volkswagen,nein,2016-04-02 00:00:00,0,42329,2016-04-06 17:16:00
+## 2016-03-27 18:57:38,Ford_Focus_Turnier_2.0_16V,privat,Angebot,5100,control,kombi,2006,manuell,145,focus,125000,4,benzin,ford,nein,2016-03-27 00:00:00,0,66125,2016-04-05 17:21:13
+## 2016-03-27 19:37:54,Fur_liebhaber_oder_Export_sehr_schones_audi_80_bjr_93__T&#220;V_03_16,privat,Angebot,450,control,limousine,1993,manuell,0,80,5000,6,benzin,audi,nein,2016-03-27 00:00:00,0,47809,2016-04-05 17:44:27
+## 2016-03-21 14:54:57,VW_Polo_FOX_5_Tuerer_Euro3_T&#220;V_ASU_NEU_03.2018,privat,Angebot,950,control,kleinwagen,1995,manuell,75,polo,150000,9,benzin,volkswagen,nein,2016-03-21 00:00:00,0,25813,2016-04-02 13:47:05
+## 2016-03-22 15:57:24,Smart_ForTwo,privat,Angebot,1300,control,kleinwagen,1999,automatik,0,fortwo,100000,5,benzin,smart,ja,2016-03-22 00:00:00,0,79761,2016-03-22 15:57:24
+## 2016-03-18 15:41:43,Vollausstattung,privat,Angebot,1800,control,kleinwagen,2000,manuell,60,polo,150000,12,benzin,volkswagen,nein,2016-03-18 00:00:00,0,33659,2016-03-22 10:46:35
+## 2016-03-26 14:59:46,MINI_One_Sidewalk_Cabrio__Text_bitte_genau_lesen_,privat,Angebot,8990,control,cabrio,2008,manuell,90,one,70000,1,benzin,mini,nein,2016-03-26 00:00:00,0,56459,2016-04-06 14:17:45
+## 2016-03-30 03:36:22,Fiesta_Futura_2.Hand__Schiebedach__T&#220;V_NEU__76000km,privat,Angebot,1450,test,,2018,manuell,44,fiesta,80000,5,benzin,ford,nein,2016-03-30 00:00:00,0,35683,2016-04-04 14:29:35
+## 2016-04-02 14:55:12,Volkswagen_Golf_1.4_Comfortline_klima,privat,Angebot,3200,test,limousine,2004,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-04-02 00:00:00,0,10785,2016-04-04 12:18:31
+## 2016-03-06 02:36:21,SMART_Fortwo_pulse_Frei_Haus_Lieferung,privat,Angebot,2790,control,coupe,2003,automatik,75,andere,125000,11,benzin,smart,,2016-03-06 00:00:00,0,79576,2016-03-21 09:17:39
+## 2016-04-03 19:36:57,Kaufe_Bundesweit_Audi_Q7_ab_BJ_2006_bis_200.000KM,privat,Angebot,15000,test,,2006,,0,q7,150000,0,,audi,,2016-04-03 00:00:00,0,75365,2016-04-03 19:36:57
+## 2016-03-27 13:36:40,Scheunenfund_Opel_Kadett_E_Stufenheck,privat,Angebot,500,test,limousine,1988,manuell,0,kadett,90000,6,benzin,opel,,2016-03-27 00:00:00,0,96120,2016-03-29 02:15:53
+## 2016-03-09 05:36:17,Opel_Vectra,privat,Angebot,899,control,limousine,1998,manuell,101,vectra,150000,2,benzin,opel,nein,2016-03-09 00:00:00,0,22547,2016-03-29 02:16:55
+## 2016-03-08 03:56:15,VW_T5_Caravelle,privat,Angebot,11200,control,bus,2009,manuell,136,transporter,150000,2,diesel,volkswagen,nein,2016-03-08 00:00:00,0,84494,2016-03-22 02:44:22
+## 2016-03-28 16:44:10,3er_Golf_als_bastlerfahrzeug,privat,Angebot,0,test,kleinwagen,1995,manuell,45,golf,150000,10,benzin,volkswagen,ja,2016-03-28 00:00:00,0,63073,2016-04-02 21:16:18
+## 2016-03-13 14:52:34,GEPFLEGTER_FORD_MONDEO_TITANIUM_NAVI_SCHIEBEDACH,privat,Angebot,6700,test,kombi,2009,manuell,140,mondeo,150000,9,diesel,ford,nein,2016-03-13 00:00:00,0,36364,2016-03-25 13:48:03
+## 2016-04-01 01:25:25,Bmw_e_36___320i_Touring_T&#220;V_neu,privat,Angebot,1350,control,kombi,1996,manuell,150,3er,150000,7,benzin,bmw,,2016-04-01 00:00:00,0,35037,2016-04-06 18:16:00
+## 2016-03-29 18:57:10,BMW_330i_touring,privat,Angebot,5800,control,kombi,2003,manuell,231,3er,150000,9,benzin,bmw,nein,2016-03-29 00:00:00,0,79576,2016-04-06 04:46:03
+## 2016-03-14 18:43:44,Dodge_Magnum,privat,Angebot,9000,test,kombi,2007,automatik,255,,150000,2,,sonstige_autos,nein,2016-03-14 00:00:00,0,21395,2016-04-06 02:17:28
+## 2016-03-08 22:54:25,Volkswagen_Golf_1.4,privat,Angebot,1500,test,limousine,1998,manuell,75,golf,150000,7,benzin,volkswagen,nein,2016-03-08 00:00:00,0,14806,2016-03-10 10:17:53
+## 2016-03-22 21:56:30,Toyota_Avensis_2.0_D_4D_Combi_Executive,privat,Angebot,2300,control,kombi,2004,manuell,116,avensis,150000,2,diesel,toyota,nein,2016-03-22 00:00:00,0,94113,2016-03-25 14:49:15
+## 2016-03-21 20:51:29,Daihatsu_Cuore,privat,Angebot,100,control,kleinwagen,1998,manuell,45,cuore,150000,9,benzin,daihatsu,nein,2016-03-21 00:00:00,0,33649,2016-03-21 20:51:29
+## 2016-03-24 19:36:25,320_d_M_Paket,privat,Angebot,2300,control,limousine,2004,,0,3er,150000,11,diesel,bmw,nein,2016-03-24 00:00:00,0,98527,2016-03-24 19:36:25
+## 2016-03-07 12:36:56,Mercedes_Benz_B_180_CDI_BlueEFFICIENCY__NAVI__unfallfrei__+WR,privat,Angebot,16300,test,bus,2012,manuell,109,b_klasse,70000,6,diesel,mercedes_benz,nein,2016-03-07 00:00:00,0,65205,2016-03-15 15:46:20
+## 2016-03-28 14:51:20,Fiat_Panda_1.2,privat,Angebot,3200,test,kleinwagen,2006,manuell,60,panda,70000,2,benzin,fiat,nein,2016-03-28 00:00:00,0,32657,2016-04-02 19:17:52
+## 2016-03-12 01:56:56,Smart__KLIMA_/_SITZHEIZUNG_/_LEDER_AUSSTATTUNG,privat,Angebot,1950,test,kleinwagen,2001,automatik,54,fortwo,150000,12,benzin,smart,nein,2016-03-12 00:00:00,0,41352,2016-03-17 03:45:56
+## 2016-03-29 15:47:56,Opel_Vectra_B____Auch_Tausch!!!,privat,Angebot,1100,control,,2017,manuell,100,vectra,150000,0,benzin,opel,,2016-03-29 00:00:00,0,02943,2016-04-06 01:44:37
+## 2016-03</code></pre>
+<pre class="r"><code>plot(h2o_exp_shap) + ggtitle(&quot;SHAP explanation&quot;)</code></pre>
+<p><img src="javascript://" width="672"/>
+###Explanation - XAI-Method-1 SHAP</p>
+<p>This plot shows how each feature contributes to the predicted price
+of the car. Positive contributions (green bars) indicate features that
+increase the predicted price, while negative contributions (red bars)
+would indicate features that decrease it. The model uses these features
+to make accurate predictions, and SHAP helps in interpreting how each
+feature impacts the final prediction.</p>
+<p>-<strong>Positive Contributions</strong>:</p>
+<p>Features like the month of registration, year of registration,
+vehicle type, power, model, and gearbox have minor positive
+contributions, slightly increasing the predicted price.</p>
+<ul>
+<li><strong>Negative Contributions</strong>:</li>
+</ul>
+<p>Features like name and postal code have slight negative impacts,
+slightly reducing the predicted price.</p>
+<ul>
+<li><strong>Neutral Effects</strong>:</li>
+</ul>
+<p>Some features, like not repaired damage, have a neutral effect on the
+prediction.</p>
+<p>-<strong>Positive Contributions</strong>:</p>
+<p>Features like the month of registration, year of registration,
+vehicle type, power, model, and gearbox have minor positive
+contributions, slightly increasing the predicted price.</p>
+<ul>
+<li><strong>Negative Contributions</strong>:</li>
+</ul>
+<p>Features like name and postal code have slight negative impacts,
+slightly reducing the predicted price.</p>
+<ul>
+<li><strong>Neutral Effects</strong>:</li>
+</ul>
+<p>Some features, like not repaired damage, have a neutral effect on the
+prediction.</p>
+</div>
+<div class="section level2">
+<h2>XAI-Method-2 Ceteris-paribus Profiles</h2>
+<p>Ceteris paribus profiles provide insights into how individual
+observations respond to changes in specific features, allowing for a
+more detailed understanding of the model’s behavior at the level of
+individual data points.</p>
+<pre class="r"><code>h2o_exp_cp &lt;- predict_profile(
+  
+explainer = h2o_exp, new_observation = price_prediction)
+plot(h2o_exp_cp, variables = c(&quot;powerPS&quot;)) + ggtitle(&quot;Ceteris-paribus profile&quot;)</code></pre>
+<p><img src="javascript://" width="672"/>
+###Explanation - XAI-Method-2 Ceteris-paribus Profiles</p>
+<ul>
+<li><p><strong>Positive Contribution</strong>: The variable on the
+x-axis positively influences the prediction up to a certain
+point.</p></li>
+<li><p><strong>Diminishing Returns</strong>: Beyond a specific value,
+the impact of the variable stabilizes, suggesting diminishing returns on
+the prediction value.</p></li>
+<li><p><strong>Model Sensitivity</strong>: This profile helps us
+understand the model’s sensitivity to changes in the variable while
+keeping all other variables constant.</p></li>
+<li><p>By interpreting the Ceteris-paribus profile, we gain valuable
+insights into how individual variables affect the model’s
+predictions</p></li>
+</ul>
+</div>
+<div class="section level2">
+<h2>XAI - Method-3 Break-down Plot</h2>
+<pre class="r"><code>h2o_exp_bd &lt;- predict_parts(
+explainer = h2o_exp, new_observation = price_prediction,
+type = &quot;break_down&quot;)
+plot(h2o_exp_bd) + ggtitle(&quot;Break-down plot for the new application&quot;)</code></pre>
+<p><img src="javascript://" width="672"/>
+### Expalantion XAI - Method-3 Break-down Plot:</p>
+<ul>
+<li><p><strong>Positive Contributions</strong>: Features like month of
+registration, year of registration, vehicle type, model, and gearbox
+have minor positive contributions, slightly increasing the predicted
+price.</p></li>
+<li><p><strong>Negative Contributions</strong>: Features like name and
+postal code have slight negative impacts, slightly reducing the
+predicted price.</p></li>
+<li><p><strong>Neutral Effects</strong>: Some features, like not
+repaired damage and other minor factors, have a neutral effect on the
+prediction.</p></li>
+</ul>
+<p>By understanding these contributions, we can see how each feature
+influences the model’s prediction.</p>
+<p>#Finnaly</p>
+<pre class="r"><code>h2o.shutdown(prompt = F)</code></pre>
+</div>
+</div>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script type="module" src="https://s.brightspace.com/lib/bsi/2024.11.269/unbundled/mathjax.js"></script><script type="text/javascript">document.addEventListener('DOMContentLoaded', function() {
+						if (document.querySelector('math') || /\$\$|\\\(|\\\[|\\begin{|\\ref{|\\eqref{/.test(document.body.innerHTML)) {
+							document.querySelectorAll('mspace[linebreak="newline"]').forEach(elm => {
+								elm.setAttribute('style', 'display: block; height: 0.5rem;');
+							});
+
+							window.D2L.MathJax.loadMathJax({
+								outputScale: 1.5,
+								renderLatex: false,
+								enableMML3Support: false
+							});
+						}
+					});</script><script type="module" src="https://s.brightspace.com/lib/bsi/2024.11.269/unbundled/prism.js"></script><script type="text/javascript">document.addEventListener('DOMContentLoaded', function() {
+					document.querySelectorAll('.d2l-code').forEach(code => {
+						window.D2L.Prism.formatCodeElement(code);
+					});
+				});</script><script type="module" src="https://s.brightspace.com/lib/bsi/2024.11.269/unbundled/embeds.js"></script><script type="text/javascript">document.addEventListener('DOMContentLoaded', function() {
+					window.D2L.EmbedRenderer.renderEmbeds(document.body);
+				});</script></body></html>
